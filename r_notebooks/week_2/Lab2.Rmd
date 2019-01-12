@@ -1,0 +1,118 @@
+---
+title: "STS 112: Lab 2"
+author: "Your name here"
+date: "Due 1.22.19"
+output: html_notebook
+---
+
+In this lab, we will work more with the IPUMS dataset we explored in Notebook 2. Some questions will ask you to engage with the articles in the [Minnesota Historical Census Projects](https://ekmerchant.github.io/sts112_w2019/readings/Minnesota_Historical_Census.pdf) issue of *Historical Methods*.
+
+Read in the IPUMS dataset for Week 2. This code block is complete, so you can run it as it is. Unless otherwise specified, all of the remaining code blocks have blanks that you will need to fill in to make them run correctly.
+```{r results = "hide"}
+library(readr)
+ipums <- read_csv(url("http://emilyklancher.com/teaching/data/wk2.csv"), 
+                  col_types = cols(CHBORN = col_double()))
+```
+
+## Getting Started
+Use the `names()` function and the `table()` function to remind yourself what variables and years are included in this dataset.
+```{r}
+names()
+table()
+```
+
+## Working with Age Data (4 points)
+Create a subset of ipums called `i1870` that includes only the records for 1870. Test that you have done this correctly.
+```{r}
+i1870 <- 
+
+```
+For the `i1870` data frame, fill in the blanks to make two histograms of `AGE`. For the first, use `binwidth = 1`. For the second, use `binwidth = 5`. Don't forget to weight.
+```{r}
+qplot()
+qplot()
+```
+Describe the patterns you see. Why is one histogram so much more jagged than the other?
+
+>
+
+As we read in the IPUMS articles, the census began asking for year and month of birth in 1900 as a way to address this issue. Did it work? Why or why not?
+
+>
+
+Going back to the `ipums` data frame, let's test the relationship between the `AGE` and `BIRTHYR` variables. Before we start manipulating them, let's take a look at them with the `summary()` function. Remember that we need to use the `dataframe$column` notation with the `summary()` function.
+```{r}
+summary()
+summary()
+```
+Notice the maximum birth year. Take a look at the documentation for `BIRTHYR` on the IPUMS website to figure out what is going on. Explain below:
+
+>
+
+Calculate a new column in `ipums` called `AGEC` that calculates age as the difference between year of census and year of birth. Then create a new column called `AGED` that is the difference between `AGE` and `AGEC`. Before doing this, remove records with non-informative values of `BIRTHYR`.
+```{r}
+ipums <- ipums %>% filter() %>%
+          mutate()
+```
+Now make a histogram of AGED, faceted by YEAR, using `binwidth = 0.5`.
+```{r}
+qplot()
+```
+If you look closely, you might be able to tell that there is something different about 1900. It looks like the values of `AGED` are a bit more widely distributed in 1900. Because most of the records are concentrated between -1 and 1 (due to the way we calculated AGED), the scale is too big to see whether there are records with values outside of that range. Let's do our histogram again, but this time exclude records where `AGED` is less than -1 or greater than 1. Run the following block as it is.
+```{r}
+qplot(AGED, data = filter(ipums, AGED < -1 | AGED > 1), binwidth = 0.5, 
+      facets = ~YEAR, weight = PERWT)
+```
+
+Explain how this code block differed from the previous one.
+
+>
+
+Why did we only get a graph for 1900? Why is the distribution of `AGED` different in 1900 than in the other years? Reference the reading for this week. You may also need to look at the documentation for `BIRTHYR` on the IPUMS website.
+
+>
+
+## General and Detailed Categories (2 points)
+For some variables, IPUMS provides two sets of categories: general and detailed. Referencing this week's reading, explain why IPUMS does this.
+
+>
+
+We can see the relationship between general and detailed categories for relationship to household head. Make a scatterplot of `RELATE` and `RELATED`. Facet by `YEAR`.
+
+```{r}
+qplot()
+```
+Referencing this week's reading and the documentation for `RELATE` on the IPUMS website, explain the relationship between `RELATE` and `RELATED`. Why does the plot for 1870 look different than the plots for 1900 and 1930?
+
+>
+
+## Families and Households (4 points)
+In censuses, the household is the unit of analysis. We get information about individuals, about who lives with whom, and about relationships among people who live together. We get very little information about family members outside of the household. Make histograms for the `NCHILD` and `CHBORN` variables, faceting by year and using `binwidth = 1`.
+```{r}
+qplot(NCHILD)
+qplot(CHBORN)
+```
+
+Why do these look different? What is the difference between `NCHILD` and `CHBORN`?
+
+>
+
+Take a look at the documentation for the `CHBORN` variable on the IPUMS website to see the valid response codes. Including only records for the year 1900 and with valid responses for `CHBORN`,fill in the blanks below to make a scatterplot of `CHBORN` and `NCHILD`.
+```{r}
+qplot( data = filter(ipums,YEAR == 1900 & CHBORN > 0) )
+```
+Which variable did you put on the x-axis? Why? Does it matter? Why or why not?
+
+>
+
+Try using `ggplot()` to jitter the points (take a look at Notebook 2 to fill in the blanks).
+```{r}
+ggplot(data = , aes()) + geom_jitter()
+```
+
+Explain what you see here. Does this surprise you? Why or why not? Does reading the documentation for `NCHILD` on the IPUMS website offer any explanation?
+
+>
+
+## Turn in this assignment
+Make sure you have entered your name in the space at the top and run all code blocks in this document. Click the `Preview` button and make sure the preview looks the way you want it to. Upload the `Lab2.nb.html` file to Canvas.
