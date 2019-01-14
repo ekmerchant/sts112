@@ -1,0 +1,44 @@
+---
+title: "STS 112: Lab 3"
+author: "Your name here"
+date: Due 1.29.19
+output: html_notebook
+---
+## Getting started (1 point)
+Load the `tidyverse` package and read in the data for Week 3 as a data frame called `ipums`.
+```{r results = "hide"}
+
+```
+Use the `filter()` function to remove records for Alaska and Hawaii. Test that you have done this correctly.
+```{r}
+ipums <- ipums %>% filter()
+```
+
+## RACE and RACED (3 points)
+Use the `table()` function to make a two-way (non-weighted) table of `RACED` (rows) by `RACE` (columns).
+```{r}
+table()
+```
+What is the relationship between these two variables? Who created each one?
+
+>
+
+Use this week's reading to explain why IPUMS associated each variable of `RACED` with its corresponding value of `RACE`.
+
+>
+
+## RACED by YEAR (6 points)
+Now go through all of the steps to make a high-quality weighted two-way table of `RACED` by `YEAR`. The table should look like the `RACE` by `YEAR` table we made in Notebook 2. It should have the values for `RACED` written out along the left and `YEAR` represented in columns. Numbers should have commas and no decimals, and the table should be rendered with `kable()`.
+```{r}
+
+```
+Give a *conceptual* description of what this table is and how it was constructed. Be sure to explain what RACED is and how the table is weighted, but do not give specifics of the coding.
+
+>
+
+Use this week's reading to explain the patterns you see in the table to someone who has not read the article. Be sure to explain why there are so many zeros.
+
+>
+
+## Turn in your lab
+Preview your lab to make sure all of your output and answers are included. Upload the `Lab3.nb.html` file to Canvas.

@@ -1,0 +1,160 @@
+---
+title: "STS 112: Notebook 3"
+author: "Professor Emily Klancher Merchant, UC Davis"
+output: html_notebook
+---
+
+## Read in and explore the data
+Start by reading in the data for this week, saving as a dataframe called `ipums`. Instead of using the `readr` package like we did last week, we are going to use the `tidyverse` package, which includes `readr`, `dplyr`, `ggplot2` and many other useful packages. Make sure to install it before you run the following code. We will be loading more packages later on, so for each one, be sure to install the package (if you haven't already done so) before running the `library()` function.
+```{r results = "hide"}
+library(tidyverse)
+
+ipums <- read_csv(url("http://emilyklancher.com/teaching/data/wk3.csv"))
+```
+Let's explore the dataset and read the codebook to figure out which samples we are working with and which variables are included. First use the `names()` function to see which variables are included.
+```{r}
+names()
+```
+One quick way to get a sense of which samples we are working with is to make a histogram of `PERWT`, faceting by `YEAR`. Use `binwidth = 1`.
+```{r}
+qplot()
+```
+What does this tell us about which samples we are using?
+
+>
+
+## Recoding variables
+Now let's look at `RACE`. What happens when we plug it into `qplot()`?
+```{r}
+qplot()
+```
+Why did R give us a histogram? Why is that not the best way to visualize `RACE`?
+
+>
+
+Since `RACE` is a nominal variable, we need to **recode** it to replace the numbers provided by IPUMS with the values they stand for. There are two ways we can do this. First, we can create a character variable that takes as values the text strings that correspond to the numbers in `RACE`. Use the codebook to match values to numbers. It's a good idea to start by checking which values of the variable in question are actually included in the data set. So far we have been doing that with the `table()` function, which also tells us how many records have each value of the given variable. If we don't need that information, we can use the `unique()` function, which returns a vector of unique values in the vector that is the argument to the function.
+```{r}
+unique(ipums$RACE)
+```
+If we want to see the elements of a vector in numeric (or alphabetical) order, we can sort them with the `sort()` function.
+```{r}
+sort(unique(ipums$RACE))
+```
+Now we will use this information, together with the codebook, to recode `RACE`, creating a new variable called `RACEC` and substituting for each numeric value of `RACE` its corresponding text value. For now, we will keep the values of the new character variable short so we can see them in the plots.
+```{r}
+ipums <- ipums %>% mutate(RACEC = ifelse(RACE == 1, "White",
+                                  ifelse(RACE == 2, "Black",
+                                  ifelse(RACE == 3, "Native",
+                                  ifelse(RACE == 4, "Chinese",
+                                  ifelse(RACE == 5, "Japanese",
+                                  ifelse(RACE == 6, "OAIP","Other")))))))
+```
+There are seven unique values of `RACE`. Why did we only use six `ifelse()` functions to make `RACEC`?
+
+>
+
+What happens when we put our new variable into `qplot()`?
+```{r}
+qplot()
+```
+Now `qplot()` gives us a bar chart because R knows we are dealing with a nominal variable. The categories are a bit hard to see, but they are in alphabetical order across the x-axis.
+
+The other way to recode `RACE` is to convert it to a **factor**. A factor is a data type that is stored as an integer, but each integer value is associated with a text label. Factors are more efficient for the computer to process, but R knows not to do math with them because the numeric values are symbolic. You can use factors for nominal and ordinal variables.
+```{r}
+#Step 1: create a vector of labels for the new factor variable. These must be in numeric order, corresponding to the values of the numeric variable we are recoding.
+race_labels <- c("White", "Black", "Native", "Chinese", "Japanese", "OAIP", "Other")
+#Step 2: create the factor variable, applying the vector label
+ipums <- ipums %>% mutate(RACEF = factor(RACE, labels = race_labels))
+
+#Alternatively, we could have done it all in one step:
+ipums <- ipums %>% mutate(RACEF = factor(RACE, 
+                  labels = c("White", "Black", "Native", "Chinese", "Japanese", "OAIP", "Other")))
+
+#It also would have been easy to do it using the dataframe$column notation instead of mutate():
+ipums$RACEF <- factor(ipums$RACE, labels = race_labels)
+```
+Make a `qplot()` of `RACEF`.
+```{r}
+qplot()
+```
+Why does this look different from the `qplot()` of `RACEC`?
+
+>
+
+## Two-way tables
+The visualization we will be focusing on this week is the **table**. We have already used the `table()` function to make one-way tables. Do it now with `RACEF`.
+```{r}
+table()
+```
+If we are interested in the way the racial composition of the U.S. population changed over time, this won't help us much because it combines all of the years into a single table. If we want to see each year separately, we need a two-way table. We can do this by passing a second variable to the `table()` function. This is the **by** variable. If we want `RACEF` by `YEAR`, we do this:
+```{r}
+table(ipums$RACEF, ipums$YEAR)
+```
+Note that the first variable specifies the rows and the second variable specifies the columns. This shows us how the number of people in each category changes from census to census in the *sample*, but how do we calculate the number in the entire *population*? We can't just add the `weight` argument to the `table()` function, but the `questionr` package has a function called `wtd.table()` that does take a `weights` argument (note that it is "weights" and not "weight").
+```{r}
+library(questionr)
+wtd.table(ipums$RACEF, ipums$YEAR, weights = ipums$PERWT)
+```
+Now we have a new problem: decimals. People only come in integer values, so we want to round each value in our table to the nearest integer. We can do this with the `round()` function. The `round()` function takes two arguments: the value we are rounding and the number of decimals we want. For example:
+```{r}
+round(5.9295702, 2)
+round(8.2950690, 0)
+```
+Since we want to round every value in our table, the whole `wtd.table()` function becomes the first argument to the `round()` function. Since we don't want any decimals, the second argument is `0`.
+```{r}
+round(wtd.table(ipums$RACEF, ipums$YEAR, weights = ipums$PERWT), 0)
+```
+If we want to make our table easier to read, we can format it with the `format()` function. There are many ways to format a number, but in this case, we want to add commas as our thousands separator, which we do by specifying `big.mark=","` as the second argument to the `format()` function. The first argument is the number we are formatting.
+```{r}
+format(67828579, big.mark = ",")
+```
+Notice that when we formatted the number, we turned it into a character string. Since we want to round and then format, our whole statement thus far becomes the first argument to the `format()` function:
+```{r}
+format(round(wtd.table(ipums$RACEF, ipums$YEAR, weights = ipums$PERWT), 0), big.mark = ",")
+```
+It looks terrible, but we can fix that with the `kable()` function from the `knitr` package, which produces nice-looking tables. Our whole big long statement is the first argument to the `kable()` function. We don't need any additional arguments, but if we want to add a caption, that is the second argument. The caption won't print in the `.nb.html` output, but it will print in other output formats. 
+```{r}
+library(knitr)
+
+kable(format(round(wtd.table(ipums$RACEF, ipums$YEAR, weights = ipums$PERWT), 0), big.mark = ","), 
+      caption = "RACE by YEAR, 1870-1940")
+```
+At this point, we have the `wtd.table()` function nested inside the `round()` function nested inside the `format()` function nested inside the `kable()` function. R doesn't have any trouble parsing this, but it can get confusing for us. Since we have the `tidyverse` package loaded, we can instead use pipes to direct our analysis from one function to another.
+```{r}
+wtd.table(ipums$RACEF, ipums$YEAR, weights = ipums$PERWT) %>% 
+  round(0) %>% format(big.mark = ",") %>% kable(caption = "RACE by YEAR, 1870 - 1940")
+```
+Explain why this works. What happened to the first argument of each function?
+
+>
+
+## Questioning unexpected results
+Take a look at the table we created. Notice that, from 1930 to 1940, the number of people in the "Chinese", "Japanese", and "Other Asian and Pacific Islander" categories falls dramatically. Why is that? Take a look at the [documentation for the 1940 sample](https://usa.ipums.org/usa/sampdesc.shtml#us1940a). 
+
+>
+
+Alaska and Hawaii are included in the 1900-1930 samples, but not in the 1940 sample. Is it possible that the omission of AK/HI from the 1940 sample is responsible for the apparent decline of people in the "Chinese", "Japanese", and "Other Asian/Pacific Islander" categories?
+
+One way to figure this out would be to look at our data separately for AK/HI and the other states. We can use the `STATEFIP` variable to desisgnate each row in our data as either in AK/HI or in another state. Look at the codebook to find the values of `STATEFIP` that denote Alaska and Hawaii. Test your result.
+```{r}
+ipums <- ipums %>% mutate(STATE = )
+table(ipums$STATE, ipums$YEAR)
+```
+Explain how this worked. Why did we use a two-way table to test it rather than just making a table of `STATE`?
+
+>
+
+Now let's make a `qplot()` of `RACEF`, faceting by `YEAR` (rows) and `STATE` (columns).
+```{r}
+qplot(RACEF, data = ipums, facets = YEAR~STATE, weight = PERWT)
+```
+It is hard to see what is going on here because the number of people classified as "White" or "Black" is so much larger than the number of people in the other categories. Since we are only concerned with the people in the categories that reference Asian and Pacific Islander nationalities, let's filter the `ipums` data frame to only include people with values of `RACE` greater than 3.
+```{r}
+qplot(RACEF, data = , facets = YEAR~STATE, weight = PERWT)
+```
+Does this answer our question? Looking only at the non-AK/HI population, we still see a decrease in the number of people classified as "Japanese" from 1930 to 1940. Any ideas why that might have happened? There is also a decrease in the number of people classified as "Chinese" between 1880 and 1900, but probably for a different reason. Any ideas?
+
+>
+
+## Dealing with data inconsistencies
+The IPUMS samples for 1940-1950 do not include Alaska and Hawaii, but the samples for 1900-1930 and 1960-2010 do. We have seen that this can create unexpected results, potentially leading to incorrect interpretations. To keep our analyses consistent, any time our analysis includes 1940 and/or 1950, together with one or more samples from 1900-1930, we must remove records for Alaska and Hawaii from the 1900-1930 samples, and explain in our methodology why we did this. It is fine to leave Alaska and Hawaii in the 1960-2010 samples, but we must alert our audience to the fact that these states are missing from earlier samples. Both Alaska and Hawaii attained statehood in 1959.
