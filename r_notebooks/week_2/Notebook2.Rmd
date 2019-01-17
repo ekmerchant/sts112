@@ -1,8 +1,20 @@
 ---
-title: "STS 112: Working With IPUMS Data"
+title: "STS 112: Notebook 2"
 author: Professor Emily Klancher Merchant, UC Davis
 output: html_notebook
 ---
+# Getting started with IPUMS
+This week's notebook will get you started analyzing and visualizing IPUMS data and getting used to some of its peculiarities. After you work through this file, you will have all the tools you need to complete Lab 2. 
+
+Specifically, you will be able to: 
+
+- Read in a data file in `.csv` format.
+- Get a general sense of what is in the dataset (which censuses, which samples [1%, 5%, etc.], and which variables).
+- Create a data frame that contains a subset of your original frame (filtering rows and selecting columns).
+- Test that you have subset your data correctly.
+- Produce frequency tables and univariate statistics.
+- Make exploratory visualizations (histograms and scatterplots).
+- Weight your analyses and visualizations appropriately.
 
 ## IPUMS
 [IPUMS](http://www.ipums.org), short for Integrated Public Use Microdata Sample, offers microdata (individual-level data) samples for [U.S. censuses from 1850 to 2010](https://usa.ipums.org/usa/), censuses from [many other countries](https://international.ipums.org/international/) over a nearly equally long period of time, and many other surveys, including the [American Community Survey](https://usa.ipums.org/usa/), the [Current Population Survey](https://cps.ipums.org/cps/), [health surveys](https://www.ipums.org/healthsurveys.shtml), and a variety of [time use surveys](https://www.ipums.org/timeuse.shtml). For all of these censuses and surveys, IPUMS offers a user-friendly interface for creating custom extracts, so you can choose to download only the years and variables you are interested in (for example, information about occupation from the 1880 and 1900 U.S. censuses). You will begin by working with extracts that I have created for this class.
@@ -14,21 +26,21 @@ library(readr)
 ipums <- read_csv(url("http://emilyklancher.com/teaching/data/wk2.csv"), 
                   col_types = cols(CHBORN = col_double()))
 ```
-The data frame that we have stored as the variable `ipums` is much too large to print to the console. But there are other ways we can explore it. We can see the first six rows with the `head()` function and the last six rows with the `tail()` function.
+The data frame that we have stored as the variable `ipums` is much too large to print to the console. But there are other ways we can explore it. We can see the first six rows with the `head()` function and the last six rows with the `tail()` function. The argument to each of these functions is the name of the data frame you want to explore.
 ```{r}
-head(ipums)
-tail(ipums)
+head()
+tail()
 ```
-We can see the names of the columns in the output for `head()` and `tail()`, but we can also get a vector of the column names with the `names()` function.
+We can see the names of the columns in the output for `head()` and `tail()`, but we can also get a vector of the column names with the `names()` function. Again, the argument to the `names()` function is the name of the dataset you want to explore.
 ```{r}
-names(ipums)
+names()
 ```
-We can get information about all of these variables from the [IPUMS website](https://usa.ipums.org) and from the codebook for this data set. We can find out which years are included in the dataset from the codebook, or by using the `table()` function for the variable `YEAR`. The `table()` function gives us a frequency table: it tells us how many rows contain each value of a given variable.
+We can get information about all of these variables from the [IPUMS website](https://usa.ipums.org) and from the codebook for this data set. We can find out which years are included in the dataset from the codebook, or by using the `table()` function for the variable `YEAR`. The `table()` function gives us a frequency table: it tells us how many rows contain each value of a given variable. The argument to the `table()` function is the vector for which you want to create a frequency table, in `<dataframe>$<column>` format.
 ```{r}
-table(ipums$YEAR)
+table()
 ```
 
-## Subsetting
+## Subsetting and Testing
 Let's review the four `dplyr` functions we have used so far: `select()`, `filter()`, `arrange()` and `mutate()`. How would we make:
 
 - A dataset that includes only the variables YEAR, PERWT, AGE, and SEX?
@@ -54,24 +66,25 @@ ipums_sub <-
 ## Samples and Weights
 The IPUMS website allows us to create data sets using as many censuses as we would like. For each census, we select one or more **samples** from the full **universe** of data, which would be too large to analyze on a personal computer. The census counts *everyone*, producing *universal* data. If we could analyze the whole census, we would know about everyone in the country, barring issues of undercounting (as discussed in *The West Wing*). But because we are working with limited computational power, IPUMS gives us a **sample** of data, designed to be representative of the whole **universe**. For all census years, IPUMS offers a 1% sample, which means that each person in the sample represents approximately 100 people in the total population. Most of the time, we will be working with 1% samples. For some years, IPUMS also offers 5% or 10% samples, meaning that each person in the sample represents approximately 20 (5%) or 10 (10%) people in the total population. For any given year, a 10% sample will be approximately twice as large as a 5% sample, which will be approximately five times as large as a 1% sample. 1%, 5%, and 10% refer to the **density** of the sample. Higher-density samples offer more precision in analysis, especially when we are evaluating uncommon characteristics. The `PERWT` variable indicates, for each person in the sample, how many people in the entire population (the universe) they represent.
 
-To explore the `PERWT` variable, let's begin by using the `ipums_sub` dataset we just created. A very useful function for this purpose is `summary()`, which will give us univariate statistics for this variable across the dataset. Its output includes the minimum value, the first quartile (25th percentile), the median value (50th percentile), the third quartile (75th percentile), and the maximum value.
+To explore the `PERWT` variable, let's begin by using the `ipums_sub` dataset we just created. A very useful function for this purpose is `summary()`, which will give us univariate statistics for this variable across the dataset. Its output includes the minimum value, the first quartile (25th percentile), the median value (50th percentile), the third quartile (75th percentile), and the maximum value. The argument to `summary()` is a vector (`<dataframe>$<column>`).
 ```{r}
-summary(ipums_sub$PERWT)
+summary()
 ```
 This tells us that 50% of rows in our data frame have a `PERWT` value between 99.65 and 101.95. Does this give you a hint as to which sample we are working with? 
 
 >
 
-If we wanted to visualize the distribution of the values of `PERWT` across our dataset, we could do this very quickly with the `hist()` function, which will draw a histogram. A histogram charts the number of observations in the data set that have each value of our variable of interest. In that sense, it is a visual analogue of the `summary()` function.
+## Histograms
+If we wanted to visualize the distribution of the values of `PERWT` across our dataset, we could do this very quickly with the `hist()` function, which will draw a histogram. A histogram charts the number of observations in the data set that have each value of our variable of interest. In that sense, it is a visual analogue of the `summary()` function, and its argument is a vector.
 ```{r}
-hist(ipums_sub$PERWT)
+hist()
 ```
-We can make a histogram that is slightly better, but still quick and easy, with the `qplot()` function from the `ggplot2` package. It takes a minimum of two arguments: the variable of interest and the dataset.
+We can make a histogram that is slightly better, but still quick and easy, with the `qplot()` function from the `ggplot2` package. It takes a minimum of two arguments: the variable of interest and the name of the dataset. In general terms, it looks like this: `qplot(<column>, data = <dataframe>)`.
 ```{r}
 library(ggplot2)
 qplot(PERWT, data = ipums_sub)
 ```
-Note the warning about bin width. By default, `qplot()` uses 30 evenly-spaced bins for a histogram. We can get a more (or less) detailed histogram by specifying the width of the bins we want.
+Note the warning about bin width. By default, `qplot()` uses 30 evenly-spaced bins for a histogram. We can get a more (or less) detailed histogram by specifying the width of the bins we want using the `bidwidth` argument.
 ```{r}
 qplot(PERWT, data = ipums_sub, binwidth = 0.5)
 ```
@@ -79,7 +92,6 @@ Does this histogram support or challenge your previous guess as to what sample d
 
 >
 
-## More Quick and Dirty Data Visualizations
 Let's go back to our original dataframe (`ipums`), and plot a histogram of the age distribution. Fill in the blanks below, using `binwidth = 5`.
 ```{r}
 qplot( binwidth = 5)
@@ -104,7 +116,7 @@ What did the `filter()` argument do in the code block above?
 
 >
 
-We can use the `weight` option in `qplot()` to take sample density into account. Fill in the blanks below.
+We can use the `weight` argument in `qplot()` to take sample density into account. Fill in the blanks below.
 ```{r}
 qplot( weight = PERWT)
 ```
@@ -121,7 +133,7 @@ Notice that sex is labeled as 1 and 2. What does that mean? In IPUMS, most varia
 ## Scatterplots
 Histograms are great for seeing the distribution of a single variable, and we can use the `facet` argument to classify our histograms on the basis of one or two other variables. If we want to see the joint distribution of a pair of variables, we can make a **scatterplot**. In a scatterplot, each row in the dataset is represented as a point. The x-axis location of the point is the value of the first variable and the y-axis location is the value of the second variable. Traditionally, if we think one variable influences the other, we put that variable on the x-axis. The command for a scatterplot is the same as for a histogram, but instead of listing one variable, we list two, separated by commas. Fill in the rest of the code below to make a scatterplot of `AGE` and `NCHILD`. Facet by `YEAR` and weight by `PERWT`.
 ```{r}
-qplot(AGE, NCHILD, data = ipums, facets = ~YEAR, weight = PERWT)
+qplot(AGE, NCHILD, data = ipums)
 ```
 What does the `NCHILD` variable reference? Why is `AGE` on the x-axis and `NCHILD` on the y-axis? Why do the points look like horizontal lines? 
 

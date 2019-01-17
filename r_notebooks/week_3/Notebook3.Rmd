@@ -4,6 +4,15 @@ author: "Professor Emily Klancher Merchant, UC Davis"
 output: html_notebook
 ---
 
+This week's notebook focuses on thinking critically about race classification and making two-way tables. After working through this file, you will be able to: 
+
+- Recode nominal variables as factors.
+- Make attractive two-way tables.
+- Think historically and spatially.
+- Describe and interpret your data visualizations.
+
+These are all of the skills you will need to complete Lab 3.
+
 ## Read in and explore the data
 Start by reading in the data for this week, saving as a dataframe called `ipums`. Instead of using the `readr` package like we did last week, we are going to use the `tidyverse` package, which includes `readr`, `dplyr`, `ggplot2` and many other useful packages. Make sure to install it before you run the following code. We will be loading more packages later on, so for each one, be sure to install the package (if you haven't already done so) before running the `library()` function.
 ```{r results = "hide"}
@@ -15,6 +24,10 @@ Let's explore the dataset and read the codebook to figure out which samples we a
 ```{r}
 names()
 ```
+What is the difference between `RACE` and `RACED`?
+
+>
+
 One quick way to get a sense of which samples we are working with is to make a histogram of `PERWT`, faceting by `YEAR`. Use `binwidth = 1`.
 ```{r}
 qplot()
@@ -26,7 +39,7 @@ What does this tell us about which samples we are using?
 ## Recoding variables
 Now let's look at `RACE`. What happens when we plug it into `qplot()`?
 ```{r}
-qplot()
+qplot(RACE)
 ```
 Why did R give us a histogram? Why is that not the best way to visualize `RACE`?
 
@@ -34,11 +47,11 @@ Why did R give us a histogram? Why is that not the best way to visualize `RACE`?
 
 Since `RACE` is a nominal variable, we need to **recode** it to replace the numbers provided by IPUMS with the values they stand for. There are two ways we can do this. First, we can create a character variable that takes as values the text strings that correspond to the numbers in `RACE`. Use the codebook to match values to numbers. It's a good idea to start by checking which values of the variable in question are actually included in the data set. So far we have been doing that with the `table()` function, which also tells us how many records have each value of the given variable. If we don't need that information, we can use the `unique()` function, which returns a vector of unique values in the vector that is the argument to the function.
 ```{r}
-unique(ipums$RACE)
+unique()
 ```
 If we want to see the elements of a vector in numeric (or alphabetical) order, we can sort them with the `sort()` function.
 ```{r}
-sort(unique(ipums$RACE))
+sort(unique())
 ```
 Now we will use this information, together with the codebook, to recode `RACE`, creating a new variable called `RACEC` and substituting for each numeric value of `RACE` its corresponding text value. For now, we will keep the values of the new character variable short so we can see them in the plots.
 ```{r}
@@ -57,9 +70,9 @@ What happens when we put our new variable into `qplot()`?
 ```{r}
 qplot()
 ```
-Now `qplot()` gives us a bar chart because R knows we are dealing with a nominal variable. The categories are a bit hard to see, but they are in alphabetical order across the x-axis.
+Now `qplot()` gives us a bar chart because R knows we are dealing with a nominal variable.
 
-The other way to recode `RACE` is to convert it to a **factor**. A factor is a data type that is stored as an integer, but each integer value is associated with a text label. Factors are more efficient for the computer to process, but R knows not to do math with them because the numeric values are symbolic. You can use factors for nominal and ordinal variables.
+The other way to recode `RACE` is to convert it to a **factor**. A factor is a data type that is stored as an integer, but each integer value is associated with a text label. Factors are more efficient for the computer to process, but R knows not to do math with them because the numeric values are symbolic. You can use factors for nominal and ordinal variables. The general form of the `factor()` function is `factor(<variable_to_recode>, labels = c("<value1>", "<value2>", ...))`. If you are using it to make a new column in a data frame, it would go inside a mutate function: `mutate(<name_of_new_column> = factor(<variable_to_recode>, labels = c("<value1>", "<value2>", ...)))`.
 ```{r}
 #Step 1: create a vector of labels for the new factor variable. These must be in numeric order, corresponding to the values of the numeric variable we are recoding.
 race_labels <- c("White", "Black", "Native", "Chinese", "Japanese", "OAIP", "Other")
@@ -70,7 +83,7 @@ ipums <- ipums %>% mutate(RACEF = factor(RACE, labels = race_labels))
 ipums <- ipums %>% mutate(RACEF = factor(RACE, 
                   labels = c("White", "Black", "Native", "Chinese", "Japanese", "OAIP", "Other")))
 
-#It also would have been easy to do it using the dataframe$column notation instead of mutate():
+#It also would have been easy to do it using the <dataframe>$<column> notation instead of mutate():
 ipums$RACEF <- factor(ipums$RACE, labels = race_labels)
 ```
 Make a `qplot()` of `RACEF`.
@@ -95,7 +108,7 @@ Note that the first variable specifies the rows and the second variable specifie
 library(questionr)
 wtd.table(ipums$RACEF, ipums$YEAR, weights = ipums$PERWT)
 ```
-Now we have a new problem: decimals. People only come in integer values, so we want to round each value in our table to the nearest integer. We can do this with the `round()` function. The `round()` function takes two arguments: the value we are rounding and the number of decimals we want. For example:
+Now we have a new problem: decimals. People only come in integer values, so we want to round each value in our table to the nearest integer. We can do this with the `round()` function. The `round()` function takes two arguments: `round(<value_to_be_rounded>, <desired_number_of_decimals>)`. For example:
 ```{r}
 round(5.9295702, 2)
 round(8.2950690, 0)
@@ -104,7 +117,7 @@ Since we want to round every value in our table, the whole `wtd.table()` functio
 ```{r}
 round(wtd.table(ipums$RACEF, ipums$YEAR, weights = ipums$PERWT), 0)
 ```
-If we want to make our table easier to read, we can format it with the `format()` function. There are many ways to format a number, but in this case, we want to add commas as our thousands separator, which we do by specifying `big.mark=","` as the second argument to the `format()` function. The first argument is the number we are formatting.
+If we want to make our table easier to read, we can format it with the `format()` function. There are many ways to format a number, but in this case, we want to add commas as our thousands separator, which we do by specifying `big.mark=","` as the second argument to the `format()` function. The first argument is the number we are formatting, so the general form is `format(<number_to_be_formatted>, <format>)`.
 ```{r}
 format(67828579, big.mark = ",")
 ```
@@ -119,7 +132,7 @@ library(knitr)
 kable(format(round(wtd.table(ipums$RACEF, ipums$YEAR, weights = ipums$PERWT), 0), big.mark = ","), 
       caption = "RACE by YEAR, 1870-1940")
 ```
-At this point, we have the `wtd.table()` function nested inside the `round()` function nested inside the `format()` function nested inside the `kable()` function. R doesn't have any trouble parsing this, but it can get confusing for us. Since we have the `tidyverse` package loaded, we can instead use pipes to direct our analysis from one function to another.
+At this point, we have the `wtd.table()` function nested inside the `round()` function nested inside the `format()` function nested inside the `kable()` function. R doesn't have any trouble parsing this, but it can get confusing for us since it requires us to think from the inside out rather than sequentially. Since we have the `tidyverse` package loaded, we can instead use pipes to direct our analysis from one function to another, even though these are not `dplyr` functions.
 ```{r}
 wtd.table(ipums$RACEF, ipums$YEAR, weights = ipums$PERWT) %>% 
   round(0) %>% format(big.mark = ",") %>% kable(caption = "RACE by YEAR, 1870 - 1940")
@@ -137,24 +150,46 @@ Alaska and Hawaii are included in the 1900-1930 samples, but not in the 1940 sam
 
 One way to figure this out would be to look at our data separately for AK/HI and the other states. We can use the `STATEFIP` variable to desisgnate each row in our data as either in AK/HI or in another state. Look at the codebook to find the values of `STATEFIP` that denote Alaska and Hawaii. Test your result.
 ```{r}
-ipums <- ipums %>% mutate(STATE = )
-table(ipums$STATE, ipums$YEAR)
+ipums <- ipums %>% mutate(STATE = ifelse(STATEFIP %in% c(), "AK/HI", "Other"))
+qplot(STATE, STATEFIP, data = ipums, facets = ~YEAR)
 ```
-Explain how this worked. Why did we use a two-way table to test it rather than just making a table of `STATE`?
+Explain how this worked. Why did we use a scatterplot to test it rather than just making a table of `STATE`?
 
 >
 
-Now let's make a `qplot()` of `RACEF`, faceting by `YEAR` (rows) and `STATE` (columns).
+Now let's make a `qplot()` of `RACEF`, faceting by `YEAR` (rows) and `STATE` (columns). Weight by `PERWT`.
 ```{r}
-qplot(RACEF, data = ipums, facets = YEAR~STATE, weight = PERWT)
+qplot()
 ```
 It is hard to see what is going on here because the number of people classified as "White" or "Black" is so much larger than the number of people in the other categories. Since we are only concerned with the people in the categories that reference Asian and Pacific Islander nationalities, let's filter the `ipums` data frame to only include people with values of `RACE` greater than 3.
 ```{r}
-qplot(RACEF, data = , facets = YEAR~STATE, weight = PERWT)
+qplot()
 ```
-Does this answer our question? Looking only at the non-AK/HI population, we still see a decrease in the number of people classified as "Japanese" from 1930 to 1940. Any ideas why that might have happened? There is also a decrease in the number of people classified as "Chinese" between 1880 and 1900, but probably for a different reason. Any ideas?
+Does this answer our question? Why or why not?
+
+>
+
+Looking only at the non-AK/HI population, we still see a decrease in the number of people classified as "Japanese" from 1930 to 1940. Any ideas why that might have happened? There is also a decrease in the number of people classified as "Chinese" between 1880 and 1900, but probably for a different reason. Any ideas (think about this week's reading)?
 
 >
 
 ## Dealing with data inconsistencies
 The IPUMS samples for 1940-1950 do not include Alaska and Hawaii, but the samples for 1900-1930 and 1960-2010 do. We have seen that this can create unexpected results, potentially leading to incorrect interpretations. To keep our analyses consistent, any time our analysis includes 1940 and/or 1950, together with one or more samples from 1900-1930, we must remove records for Alaska and Hawaii from the 1900-1930 samples, and explain in our methodology why we did this. It is fine to leave Alaska and Hawaii in the 1960-2010 samples, but we must alert our audience to the fact that these states are missing from earlier samples. Both Alaska and Hawaii attained statehood in 1959.
+
+## Communicating about your visualizations
+Data and visualizations can never speak for themselves. In this course, you will be asked to communicate about your data visualizations in two ways. When I ask you to explain what a visualization *is*, I am asking you to give your reader enough information that they could re-create your visualization and interpret it for themself. When I ask you to explain what a visualization *shows*, I am asking you to interpret your visualization, drawing on information you have learned in this class and any prior knowledge you may have.
+
+Make the table of `RACEF` by `YEAR` again, this time eliminating records for Alaska and Hawaii.
+```{r}
+
+```
+Explain what this visualiation *is*:
+
+> This table shows the number of people classified in each category of the IPUMS variable `RACE` in each census year from 1870 to 1940, with the exception of 1890, for which manuscript records were destroyed. It is constructed from IPUMS 1% samples for each year, weighting by `PERWT`. Alaska and Hawaii have been excluded because data are not consistently available for those states during this period. The `RACE` variable groups together as "White" people who were classified by census enumerators as "White", "Portuguese", "Mexican", or "Puerto Rican". It groups together as "Black" people who were classified by census enumerators as "Negro" or "Mulatto". It groups together as "Other Asian or Pacific Islander" (OAIP in map above) people who were classified by census enumerators as "Filipino", "Hindu", or "Korean". Complete documentation for `RACE` is available on the [IPUMS website](https://usa.ipums.org/usa-action/variables/RACE#description_section).
+
+Explain what this visualization *shows*:
+
+> *Note: This is just a small part of the text you would need to fully interpret the table; use it as an example for how you would discuss the parts I have not discussed here.* This table shows growth in all categories of `RACE` between 1870 and 1940, but the growth is not always linear, and extreme caution must be taken in interpreting the data. The "White" category, which is by far the largest, conceals intense debate during this period of heavy immigration over which groups of immigrants would count as white (Hochschild and Powell 75-77). The stakes were not trivial, as naturalization was limited to people who were either white or black, and nonwhites faced various degrees of segregation and disenfranchisement in many parts of the country. The "Black" category ostensibly includes all individuals with African ancestry, even though the Census Bureau attempted to identify mixed-race individuals between 1850 and 1920 (Hochschild and Powell 66-71). The dramatic growth in the "Native" category reflects changes in the way Native Americans were counted by the census, rather than growth in the Native American population. Native Americans were classified inconsistently over time, with those who lived among white Americans often classified as white (Hochschild and Powell 77-80). *More text here about the other rows of the table.* While this table does give some indication of the changing racial composition of the U.S. population, it does so more in the addition of categories over time than in the actual numbers. By grouping together some of the people who were originally classified separately in the census, the IPUMS `RACE` variable facilitates analysis over time but conceals change over time in the ways Americans understood race and classified people into racial categories.
+
+> Works Cited:  
+> Hochschild, Jennifer L. and Brenna Marea Powell, "Racial Reorganizationa nd the United States Census 1850-1930: Mulattoes, Half-Breeds, Mixed Parentage, Hindoos, and the Mexican Race," *Studies in American Political Development* 22, 2008, pp. 59-96.

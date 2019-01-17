@@ -12,6 +12,7 @@ Load the `tidyverse` package and read in the data for Week 3 as a data frame cal
 Use the `filter()` function to remove records for Alaska and Hawaii. Test that you have done this correctly.
 ```{r}
 ipums <- ipums %>% filter()
+
 ```
 
 ## RACE and RACED (3 points)
@@ -19,7 +20,7 @@ Use the `table()` function to make a two-way (non-weighted) table of `RACED` (ro
 ```{r}
 table()
 ```
-What is the relationship between these two variables? Who created each one?
+What is the relationship between these two variables? What does each one represent?
 
 >
 
@@ -32,13 +33,13 @@ Now go through all of the steps to make a high-quality weighted two-way table of
 ```{r}
 
 ```
-Give a *conceptual* description of what this table is and how it was constructed. Be sure to explain what RACED is and how the table is weighted, but do not give specifics of the coding.
+Explain what this visualization *is*.
 
 >
 
-Use this week's reading to explain the patterns you see in the table to someone who has not read the article. Be sure to explain why there are so many zeros.
+Explain what this visualization *shows*.
 
 >
 
 ## Turn in your lab
-Preview your lab to make sure all of your output and answers are included. Upload the `Lab3.nb.html` file to Canvas.
+Make sure you have entered your name above. Preview your lab to make sure all of your output and answers are included. Upload the `Lab3.nb.html` file to Canvas.

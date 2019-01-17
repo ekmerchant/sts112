@@ -1,11 +1,11 @@
 ---
 title: "STS 112: Lab 2"
 author: "Your name here"
-date: "Due 1.22.19"
+date: Due 1.22.19
 output: html_notebook
 ---
 
-In this lab, we will work more with the IPUMS dataset we explored in Notebook 2. Some questions will ask you to engage with the articles in the [Minnesota Historical Census Projects](https://ekmerchant.github.io/sts112_w2019/readings/Minnesota_Historical_Census.pdf) issue of *Historical Methods*.
+In this lab, we will work more with the IPUMS dataset we explored in Notebook 2. Some questions will ask you to engage with the articles in the [Minnesota Historical Census Projects](https://ekmerchant.github.io/sts112_w2019/readings/Minnesota_Historical_Census.pdf) issue of *Historical Methods*. You will also need to reference the IPUMS documentation online.
 
 Read in the IPUMS dataset for Week 2. This code block is complete, so you can run it as it is. Unless otherwise specified, all of the remaining code blocks have blanks that you will need to fill in to make them run correctly.
 ```{r results = "hide"}
@@ -40,7 +40,7 @@ As we read in the IPUMS articles, the census began asking for year and month of 
 
 >
 
-Going back to the `ipums` data frame, let's test the relationship between the `AGE` and `BIRTHYR` variables. Before we start manipulating them, let's take a look at them with the `summary()` function. Remember that we need to use the `dataframe$column` notation with the `summary()` function.
+Going back to the `ipums` data frame, let's test the relationship between the `AGE` and `BIRTHYR` variables. Before we start manipulating them, let's take a look at them with the `summary()` function. Remember that the argument to `summary()` is a vector, so you need to use the `<dataframe>$<column>` notation.
 ```{r}
 summary()
 summary()
@@ -77,7 +77,7 @@ For some variables, IPUMS provides two sets of categories: general and detailed.
 
 >
 
-We can see the relationship between general and detailed categories for relationship to household head. Make a scatterplot of `RELATE` and `RELATED`. Facet by `YEAR`.
+We can see the relationship between general and detailed categories for relationship to household head. Make a scatterplot of `RELATE` and `RELATED`. Facet by `YEAR` (you do not need to weight since we are just looking at the relationship between two variables in the dataset and not trying to represent the population).
 
 ```{r}
 qplot()
@@ -93,13 +93,14 @@ qplot(NCHILD)
 qplot(CHBORN)
 ```
 
-Why do these look different? What is the difference between `NCHILD` and `CHBORN`?
+Why do these look different? What is the difference between the `NCHILD` and `CHBORN` variables? You may need to reference the documentation on the IPUMS website. With reference to this week's reading, explain why IPUMS includes both of these variables.
 
 >
 
-Take a look at the documentation for the `CHBORN` variable on the IPUMS website to see the valid response codes. Including only records for the year 1900 and with valid responses for `CHBORN`,fill in the blanks below to make a scatterplot of `CHBORN` and `NCHILD`.
+Take a look at the documentation for the `CHBORN` variable on the IPUMS website to see the valid response codes. Create a new data frame called `i1900` that includes only records for the year 1900 and only records with valid responses for `CHBORN`. Create a new variable called `BORN` that accurately represents the number of children born to the person in question. Then, using `i1900`, make a scatterplot of `BORN` and `NCHILD` weighting by `PERWT`.
 ```{r}
-qplot( data = filter(ipums,YEAR == 1900 & CHBORN > 0) )
+i1900 <- ipums %>%
+qplot( data = i1900 )
 ```
 Which variable did you put on the x-axis? Why? Does it matter? Why or why not?
 
@@ -107,7 +108,7 @@ Which variable did you put on the x-axis? Why? Does it matter? Why or why not?
 
 Try using `ggplot()` to jitter the points (take a look at Notebook 2 to fill in the blanks).
 ```{r}
-ggplot(data = , aes()) + geom_jitter()
+ggplot(i1900, aes()) + geom_jitter()
 ```
 
 Explain what you see here. Does this surprise you? Why or why not? Does reading the documentation for `NCHILD` on the IPUMS website offer any explanation?
