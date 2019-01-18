@@ -18,7 +18,7 @@ Start by reading in the data for this week, saving as a dataframe called `ipums`
 ```{r results = "hide"}
 library(tidyverse)
 
-ipums <- read_csv(url("http://emilyklancher.com/teaching/data/wk3.csv"))
+ipums <- read_csv("wk3.csv")
 ```
 Let's explore the dataset and read the codebook to figure out which samples we are working with and which variables are included. First use the `names()` function to see which variables are included.
 ```{r}

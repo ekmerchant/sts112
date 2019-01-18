@@ -10,8 +10,7 @@ In this lab, we will work more with the IPUMS dataset we explored in Notebook 2.
 Read in the IPUMS dataset for Week 2. This code block is complete, so you can run it as it is. Unless otherwise specified, all of the remaining code blocks have blanks that you will need to fill in to make them run correctly.
 ```{r results = "hide"}
 library(readr)
-ipums <- read_csv(url("http://emilyklancher.com/teaching/data/wk2.csv"), 
-                  col_types = cols(CHBORN = col_double()))
+ipums <- read_csv("wk2.csv", col_types = cols(CHBORN = col_double()))
 ```
 
 ## Getting Started

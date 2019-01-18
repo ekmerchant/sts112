@@ -23,8 +23,7 @@ Specifically, you will be able to:
 When we work with IPUMS data, the first thing we need to do is read it in from an external file. For this week, the file is online. It is a `.csv` file, which means that columns are separated by commas. The `readr` package has a good function for reading `.csv` files. The code block below reads in our data for this week and saves it as a data frame called `ipums`. I have used the `results = "hide"` option for this code chunk because the output from this function doesn't translate well in the `.nb.html` file.
 ```{r results = "hide"}
 library(readr)
-ipums <- read_csv(url("http://emilyklancher.com/teaching/data/wk2.csv"), 
-                  col_types = cols(CHBORN = col_double()))
+ipums <- read_csv("wk2.csv", col_types = cols(CHBORN = col_double()))
 ```
 The data frame that we have stored as the variable `ipums` is much too large to print to the console. But there are other ways we can explore it. We can see the first six rows with the `head()` function and the last six rows with the `tail()` function. The argument to each of these functions is the name of the data frame you want to explore.
 ```{r}
