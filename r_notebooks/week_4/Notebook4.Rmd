@@ -1,0 +1,263 @@
+---
+title: "STS 112: Notebook 4"
+author: "Professor Emily Klancher Merchant, UC Davis"
+output: html_notebook
+---
+In this notebook, we will be working with industry variables, using column graphs to visualize how the nature of work changed between 1870 and 1930. You will learn all the skills you need to complete Lab 4: using the grammar of graphics to control the appearance of your visualizations, making publication-quality column graphs that display multiple variables, recoding variables into a smaller number of categories, grouping and summarizing your data frame, and defining new functions.
+
+## Exploring the data
+Download the the [data file for week 4](https://ucdavis.box.com/s/noi5nr13eque0cx96rpkxmqyzpwqt2s4) and save it to your week 4 file. Rad it in as a data frame called `ipums`. Explore the dataset and documentation to determine which samples and variables we are working with.
+```{r results = "hide"}
+library(tidyverse)
+ipums <- read_csv("wk4.csv")
+```
+```{r}
+names()
+qplot(PERWT, data = ipums, facets = ~YEAR)
+```
+What is the relationship among the variables `OCC`, `OCC1950`, and `IND1950`?
+
+>
+
+## Grammar of graphics
+We have already made some quick-and-dirty bar graphs using the `qplot()` function. Those are great for exploratory data analysis, but if we are going to use data visualizations to tell stories or make arguments, we will need to have more control over those visualizations. The `ggplot()` function gives us that control. To see how this function differs from `qplot()`, start by using `qplot()` to make histograms of `AGE` for each value of `YEAR`. Use `bindwidth = 5` and don't forget to weight.
+```{r}
+qplot()
+```
+The following code makes the same graph using the `ggplot()` function. We saw this function before when we made a jittered scatterplot.
+```{r}
+ggplot(ipums, aes(AGE, weight = PERWT)) + geom_histogram(binwidth = 5) + facet_wrap(vars(YEAR))
+```
+The `ggplot()` function allows you to use the **grammar of graphics** to control every aspect of your plot. You can make almost any kind of graph with the `ggplot()` function, so learning how it works will get you very far in the world of data visualization. It is rapidly becoming a standard for visualizing data in R. At a minimum, `ggplot()` requires three things: a data frame, an aesthetics (`aes()`) mapping, and a geometry (`geom`) layer. The variables you are visualizing go into the `aes()` mapping. By default, R will plot the first variable you name on the x-axis. If you name a second variable, R will plot it on the y-axis. Later on in this notebook, we will look at ways to visualize more than two variables. The first argument to `ggplot()` is the name of the data frame. Since `ggplot()` is part of the `tidyverse`, you can also omit this argument and pipe a data frame into the `ggplot()` function. The `aes()` mapping can go in many different places, but for now we will include it as the second argument to `ggplot()`. Run the following code.
+```{r}
+ggplot(ipums, aes(AGE, weight = PERWT))
+```
+Why did we get a blank graph? We specified that we wanted to visualize the `ipums` data frame with the `AGE` variable on the x-axis, with values weighted by `PERWT`. But we didn't tell `ggplot` *how* to visualize `AGE`. For that we need to add a `geom()` layer, which we do by literally adding it with a `+`. Here we said that we wanted a histogram with a bin width of 5.
+```{r}
+ggplot(ipums, aes(AGE, weight = PERWT)) + geom_histogram(binwidth = 5)
+```
+To facet the plot, we simply add a faceting layer. We have two options: `facet_wrap()` facets by one variable, and if there are more facets than will fit on a line, wraps to the next line (we can also indicate how many rows or columns of facets we want); `facet_grid()` facets only in the vertical or horizontal dimension, or both if you want to facet by two variables. Above we used `facet_wrap()`. Here we will use `facet_grid()`.
+```{r}
+ggplot(ipums, aes(AGE, weight = PERWT)) + geom_histogram(binwidth = 5) + facet_grid(cols = vars(YEAR))
+```
+We can also facet vertically instead of horizontally.
+```{r}
+ggplot(ipums, aes(AGE, weight = PERWT)) + geom_histogram(binwidth = 5) + facet_grid(rows = vars(YEAR))
+```
+The `ggplot()` function produces an object that we can save. Once we have saved it, we can re-print it or add more layers to it. Let's save our basic age histogram, without facets, as `agehist`.
+```{r}
+agehist <- ggplot() + geom_histogram()
+```
+Notice that there is no output to this code, since we created a variable (`agehist`) and assigned it a value (the histogram). If we want to print the graph, we can just do this:
+```{r}
+agehist
+```
+
+If we want to facet by `SEX` as well as `YEAR`, we can put both variables in the `facet_grid()` layer. We can add this to our `agehist` object.
+```{r}
+agehist + facet_grid(rows = vars(YEAR), cols = vars(SEX))
+```
+We can factor `SEX` right in the `facet_grid()` function to get better labels for our plot.
+```{r}
+agehist + facet_grid(rows = vars(YEAR), cols = vars(SEX))
+```
+Let's save a smaller plot that we can keep working with: a histogram of `AGE` in 1880 only, faceted horizontally by `SEX`.
+```{r}
+age_1880 <-
+age_1880
+```
+There is still a lot we can do to make our plot more readable and attractive. We do this by adding more layers. We can change the overall look of our plot with a `theme()` function.
+```{r}
+age_1880 + theme_bw()
+age_1880 + theme_classic()
+age_1880 + theme_minimal()
+```
+We can control various aspects of our axes. Here we use the `scale_x_continuous()` function to control the minimum and maximum values of the x-axis and to indicate which values we want to show on that axis, and we use the `scale_y_continuous()` function to format the numbers in the y-axis.
+```{r}
+age_1880 + theme_minimal() + 
+  scale_x_continuous(lim = c(0,100), breaks = c(25, 50, 75)) + 
+  scale_y_continuous(label = scales::comma)
+```
+The warning tells us that not all of our observations were within the limits we set.
+
+We can use the `labs()` function to change our axis labels and add a title.
+```{r}
+age_1880 + theme_minimal() + 
+  scale_x_continuous(lim = c(0,100)) + 
+  scale_y_continuous(label = scales::comma) +
+  labs(x = "Age", y = "Number of People", title = "Age Distribution by Sex, 1880")
+```
+
+## Adding color
+There are other ways to visualize the age distribution over time. We could make a bar graph with `YEAR` on the x-axis and total number of people on the y-axis, with the color of the bars representing people of each age. We will get there step by step.
+
+What is the difference between these two plots?
+```{r}
+ggplot(ipums, aes(YEAR, weight = PERWT)) + geom_histogram()
+ggplot(ipums, aes(YEAR, weight = PERWT)) + geom_bar()
+```
+Why is a bar graph more appropriate than a histogram for plotting the number of people in each census year?
+
+>
+
+With `ggplot(ipums, aes(YEAR, weight = PERWT)) + geom_bar()`, we fed our whole `ipums` data frame into `ggplot()` and let `ggplot()` calculate the number of people, weighting by `PERWT`. Alternatively, we could have done that ourselves in a previous step, using two new `dplyr` functions: `group_by()` and `count()`.
+```{r}
+ipums %>% group_by(YEAR) %>% count(wt = PERWT)
+```
+This command says, for the `ipums` data frame, for each unique value of `YEAR`, count the number of records, weighting by `PERWT`. In the resulting data frame, `n` refers to the number of people in each given year. We can pipe this right into `ggplot()` or we can save it as a new data frame and then put it into `ggplot()`.
+```{r}
+ipums %>% group_by(YEAR) %>% count(wt = PERWT) %>%
+  ggplot(aes(YEAR)) + geom_bar()
+```
+This is not what we were expecting! The `geom_bar()` function counts the number of records for each year in the data frame, which in this case is 1. Instead, we want to use the `geom_col()` function, which lets us specify a variable for the y-axis.
+```{r}
+ipums %>% group_by(YEAR) %>% count(wt = PERWT) %>%
+  ggplot(aes(YEAR, n)) + geom_col()
+```
+So why go through all of this extra trouble? Because we can use the same general principles to add additional variables to our graph. To color the columns by age, we add `AGE` to our `group_by()` function, and specify an aesthetic for it in the `ggplot()` function. We will assign it to the `fill` aesthetic, which refers to the color of an object (not to be confused with the `color` aesthetic, which refers to the color of an object's outline). As you will see here, the default outline is gray.
+```{r}
+ipums %>% group_by(YEAR, AGE) %>% count(wt = PERWT) %>%
+  ggplot(aes(YEAR, n, fill = AGE)) + geom_col()
+```
+If we don't want to see the gray lines between each separate value of `AGE`, we can make them the same color as the fill:
+```{r}
+ipums %>% group_by(YEAR, AGE) %>% count(wt = PERWT) %>%
+  ggplot(aes(YEAR, n, fill = AGE, color = AGE)) + geom_col()
+```
+We can add all of our other layers to make the plot look good. Here I am also using the `guides()` function to indicate that I don't want a legend for the `color` aesthetic.
+```{r}
+ipums %>% group_by(YEAR, AGE) %>% count(wt = PERWT) %>%
+  ggplot(aes(YEAR, n, fill = AGE, color = AGE)) + geom_col() +
+    scale_x_continuous(breaks = c(1870, 1880, 1900, 1910, 1920, 1930)) +
+    scale_y_continuous(labels = scales::comma) +
+    guides(color = "none") +
+    theme_minimal() +
+    labs(x = "Census Year", y = "Population", fill = "Age", title = "U.S. Population by Age, 1870-1930")
+```
+If we want to facet by sex, we will need to make a data frame that includes one row for each combination of `YEAR`, `AGE`, and `SEX`. We can do this by adding `SEX` to the `group_by()` function. Then we just add a `facet_grid()` layer to the `ggplot()` function. Paste in the code from the graph above and make those changes. Be sure to include the value labels for `SEX`.
+```{r}
+
+```
+
+## Defining functions
+Let's do the same thing, but with `IND1950` instead of `AGE`. We can save ourselves a lot of typing by writing a general function to make a plot of this kind. Functions are one of the super-powers of R. We are not limited to functions that already exist - we can also make our own. Defining a function is similar to creating an object. We give it a name and use the assignment operator. We then use the `function()` function to define our function. The algorithm for the function goes inside curly braces. Below I have defined a new function called `add_one()` that returns any number plus one. 
+```{r}
+#Defining the add_one() function
+add_one <- function(num) {
+  return(num + 1)
+}
+
+#Using the add_one() function
+add_one(1)
+add_one(5)
+add_one(52570894)
+```
+Note that the argument to the `function()` function represents in general form the specific argument that will be passed to the `add_one()` function when we use it. Our function can take any number of arugments we want, separated by commas. Here is a function with two arguments and a function with no arguments.
+```{r}
+do_math <- function(num1, num2) {
+  return(num1 + num2 - num1*num2)
+}
+
+do_math(3, 5)
+
+print_hi <- function() {
+  print("Hi")
+}
+
+print_hi()
+```
+The functions above took numeric arguments, but you can also create functions that take character arguments, or you can write functions more generally, like the one below, to take either character or numeric arguments.
+```{r}
+like <- function(thing) {
+  print(paste("I like", as.character(thing)))
+}
+
+like("chocolate")
+like(2)
+```
+Here is a function that takes a data frame and the name of a variable, and plots that variable in the exact same way as we have plotted `AGE` above.
+```{r}
+yearsexplot <- function(ipumsdata, variable) {
+  ipumsdata %>% group_by(YEAR, SEX, !!enquo(variable)) %>% count(wt = PERWT) %>%
+    ggplot(aes(YEAR, n, fill = !!enquo(variable), color = !!enquo(variable))) + geom_col() +
+    scale_x_continuous(breaks = c(1870, 1880, 1900, 1910, 1920, 1930)) +
+    scale_y_continuous(labels = scales::comma) +
+    guides(color = "none") +
+    theme_minimal() +
+    facet_grid(cols = vars(factor(SEX, labels = c("Male", "Female")))) +
+    labs(x = "Year", y = "Number of People")
+}
+```
+Note that we had to do some special magic to let R know that `variable` references a column in `ipumsdata`. We did this by wrapping it in `!!enquo()` every time we used it. To use this function, we must call it within the `print()` function.
+```{r}
+print(yearsexplot(ipums, AGE))
+print(yearsexplot(ipums, IND1950))
+```
+If we want to include a title and legend label that are specific to these plots, we simply add them as a layer when we call the `yearsexplot()` function.
+```{r}
+print(yearsexplot(ipums, AGE) + 
+        labs(fill = "Age", title = "U.S. Population by Age and Sex, 1870-1930"))
+print(yearsexplot(ipums, IND1950) + 
+        labs(fill = "Industry", title = "U.S. Population by Sex and Industry of Occupation, 1870-1930"))
+```
+This plot of IND1950 is not very informative. It made sense to plot `AGE` on a continuous color scale because age is a continuous variable, but industry is a nominal variable. `IND1950` has too many values to make sense of individually, so let's group them together into categories. Look at the documentation for `IND1950` to see how I chose these categories. This recoding process is very similar to the process we used last week to recode `RACE` and `RACED`, but there we were doing a one-to-one recode (one value of the old variable converted to each value of the new variable) and here we are doing a many-to-one recode (many values of the old variable convert to each value of the new variable). For that reason, it is easier to do the recode in two steps: the first step supplies the new numeric values and the second converts it to a factor and adds labels.
+```{r}
+ind <- ipums %>%
+        mutate(IND = ifelse(IND1950 == 0 | IND1950 >=979, 1,
+                     ifelse(IND1950 < 246, 2,
+                     ifelse(IND1950 %in% c(246, 976), 3,
+                     ifelse(IND1950 < 500, 4,
+                     ifelse(IND1950 < 600, 5, 
+                     ifelse(IND1950 < 700, 6,
+                     ifelse(IND1950 < 800, 7,
+                     ifelse(IND1950 < 900, 8, 9))))))))) %>%
+        mutate(IND = factor(IND, 
+                        labels = c("None", "Ag/Ext", "Const/GenLab", "Manuf",
+                                    "Trans/Comm", "Trade", "FIRE", "Services", "PubAdm")))
+```
+We can check to make sure that our recode worked the way we wanted it to by making a scatterplot of `IND` and `IND1950` to see the relationship between the two. Since we are just checking to make sure the recode worked, we don't need to facet or weight.
+```{r}
+qplot(IND, IND1950, data = ind)
+```
+Now we can use our `yearsexplot()` function to plot this variable by `YEAR` and `SEX`.
+```{r}
+print(yearsexplot() + 
+        labs(fill = "Industry", title = "U.S. Population by Sex and Industry of Occupation, 1870-1930"))
+```
+How do these categories relate to the changes you read about in *The American Yawp*? How does the graph compare to your understanding of life in industrializing America?
+
+>
+
+
+The reading for this week suggests that, although railroads were rapidly producing a national economy and national culture, the experience of industrializing America differed strongly by region and by race. Here we will consider region; in the lab we will also consider race. We are going to use the `STATEFIP` variable to assign each record to one of the four [census regions](https://www2.census.gov/geo/docs/maps-data/maps/reg_div.txt): Northeast, Midwest, South, and West. For this analysis, let's eliminate Alaska, Hawaii, and any records that don't list one of the other 48 states. We will do this by first defining a function called `regionalize()`
+```{r}
+regionalize <- function(ipumsdat) {
+  northeast <- c(9, 23, 25, 33, 44, 50, 34, 36, 42)
+  midwest <- c(17, 18, 26, 39, 55, 19, 20, 27, 29, 31, 38, 46)
+  south <- c(10, 11, 12, 13, 24, 37, 45, 51, 54, 1, 21, 28, 47, 5, 22, 40, 48)
+  west <- c(4, 8, 16, 30, 32, 35, 49, 56, 6, 41, 53)
+
+  ipumsdat <- ipumsdat %>% mutate(REGION = ifelse(STATEFIP %in% northeast, 1,
+                                      ifelse(STATEFIP %in% midwest, 2,
+                                      ifelse(STATEFIP %in% south, 3,
+                                      ifelse(STATEFIP %in% west, 4, 0))))) %>% 
+                filter(REGION > 0) %>%
+                mutate(REGION = factor(REGION, labels = c("Northeast", "Midwest", "South", "West")))
+  return(ipumsdat)
+}
+```
+Explain what this function does and how you would use it.
+
+>
+
+Save it in a new script to use for your lab. For now, let's also focus our analysis on men aged 15-64. Create a new data frame that only includes these men, and that contains the variables `IND`, `REGION`, and `YEAR` (as well as the others). Test to make sure you have done this correctly.
+```{r}
+ind_men <- 
+```
+Now make the plot with `YEAR` on the x-axis, number of people on the y-axis, and `IND` represented by fill, with facets for `REGION`. If you want to make a general function for this, you will be able to use it again in your lab (keep in mind that in the lab you will be plotting occupation rather than industry and race rather than region). By default, `ggplot()` uses the same scales on the x- and y-axes for all facets. This enhances comparability, but in this case makes it difficult to see what is going on in the West. We can allow different y-axis scales in each facet by including the `scales = "free_y"` argument in the `facet_wrap()` function. Note that I have made the height of the graph taller with `fig.height = 10` in the curly braces that start the code block.
+```{r fig.height = 10}
+
+```
+Do these graphs look like what you would have expected from this week's reading? Why or why not?
+
+>

@@ -1,0 +1,67 @@
+---
+title: "STS 112: Lab 5"
+author: "Your name here"
+date: Due 2.12.19
+output: html_notebook
+---
+This lab will require you to make column graphs and line graphs to explore women's role in households and labor markets. Be sure to make all graphs publication quality (informative titles, appropriate axis labels, legend titles, attractive theme, appropriate color scheme).
+
+## Getting started
+Load the tidyverse package and read in the data for Week 5. Remove records for Alaska and Hawaii before 1960. Don't forget to explain this in your descriptions of your graphs later on.
+```{r results = "hide"}
+
+```
+## Women's occupations (4 points)
+Make a column chart showing occupational change for U.S. women aged 15-64 from 1900 to 1990. Facet by race. You may use the same occupational and racial categories you used last week for men or you may change them. If you made functions to do any of this last week, you may use them again here, but be sure to paste them in so I can see them. Remember to add an informative title.
+```{r}
+
+```
+Describe what this graph *is* and what it *shows*. Be sure to explain how you classified race and occupation. Interpret it in light of the graph you made last week for men to compare men and women's work experiences.
+
+>
+
+The big story this graph tells is that of women's entry into the labor force in the last few decades. This week's readings, however, suggest that we need to be very careful in using census data to get information about women's working lives. why is that?
+
+>
+
+Given how many women were not listed as having an occupation in most of the censuses, it can be hard to see what the women with occupations were doing. Make the same graph again, but this time filter out women who were not listed as having an occupation.
+```{r}
+
+```
+This graph makes it easier to see how women moved among occupational categories over time, and how their occupational opportunities were circumscribed by race. Does this graph reveal anything that wasn't apparent before? 
+
+>
+
+## Women's labor force participation (3 points)
+
+If we eliminate women without an occupational classification from our graph, then we need another graph to indicate what proportion of working-aged women are included in this graph so that readers can also get a sense of the number of women who did not have an occupation listed and how that changed over time. We can do this with a line graph. 
+
+What we want is a line graph with `YEAR` on the x-axis and the proportion of women who were listed as having an occupation on the y-axis, with race indicated by line color. First use mutate() to create a new variable indicating whether or not each woman had an occupation listed. Then use group_by() to group by year and race, count() to count the number of women in each category of the new indicator variable you created, use mutate() to calculate the total number of women in each category of year and race, and use filter() to remove rows indicating the number of women who were not listed as having an occupation.
+```{r}
+          mutate() %>% 
+          group_by() %>% 
+          count() %>% 
+          mutate(TOTAL = sum(n)) %>% filter()
+  ggplot() + geom_line()
+```
+Now use color to indicate marital status and facet by race.
+```{r}
+
+```
+How does this graph illustrate Folbre and Abel's argument about the relationship between marital status and occupational listing in the census for women?
+
+>
+
+Folbre and Abel didn't say anything about race. What does this graph add to the story they tell?
+
+>
+
+## Women's households (3 points)
+Now make a graph identical to the previous one, but instead of showing the percent of women aged 15-64 who are listed as having an occupation, show the percent of women aged 15-64 who are listed as household head.
+```{r}
+
+```
+Explain what this graph *is* and what it *shows*. Draw on this week's readings to interpret it.
+
+>
+

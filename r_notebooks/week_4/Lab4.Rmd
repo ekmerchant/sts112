@@ -1,0 +1,79 @@
+---
+title: "STS 112: Lab 4"
+author: "Your name here"
+date: Due 2.5.19
+output: html_notebook
+---
+
+## Occupation
+In our Notebook for this week, we worked with Industry variables, which indicate the sector of the economy in which a person was working. In the Lab, we will work with Occupation variables, which indicate the type of work a person was doing. 
+
+### Getting started (1 point)
+Start by loading the `tidyverse` package and reading in the Week 4 dataset.
+```{r results = "hide"}
+
+```
+Make a new data frame called `working` that includes only men aged 15-64. Test to make sure you have done this correctly.
+```{r}
+working <- 
+```
+### Classifying occupations (2 points)
+Create a new variable called `OCCUP` that classifies the values of OCC1950 into approximately 10 categories. This variable should be a factor, with labels indicating the names of the categories. Test to make sure you have done this correctly by making a scatterplot of `OCCUP` by `OCC1950`. We will be doing this again next week, so you may want to write a function to do it.
+```{r}
+
+```
+
+Explain what your categories are and how you chose them.
+
+>
+
+
+Make a column graph, with `YEAR` on the x-axis, number of people on the y-axis, and `OCCUP` represented by fill. Include all necessary layers to make this graph publication quality (meaningful title, labels on x- and y-axes, axes formatted, label on legend).
+```{r}
+
+```
+What patterns do you notice? How do they relate to the reading?
+
+>
+
+## Race and work (3 points)
+The reading for this week suggested that working experience differed depending on race. We are going to make the plot again, faceting by race, but first we need to come up with some sensible race categories. To begin with, make a scatterplot of `YEAR` by `RACED` so we can see which race categories are represented in the data.
+```{r}
+qplot()
+```
+Now decide on a meaningful set of categories to group these in. To keep your analysis manageable, use no more than 6 categories. Explain how you decided to classify race and why. You may draw on readings for this week or previous weeks.
+
+>
+
+Now create a variable called `RACEF` that implements your classification scheme. This should be a factor variable with labels giving the title of each category. Make a scatterplot of `RACEF` by `RACED` to make sure you classified everyone as you intended.
+```{r}
+
+qplot()
+```
+Plot `OCCUP` again, faceting by `RACEF`. If you made a general function that does this, you may use it, but be sure to paste it in.
+```{r fig.height = 10}
+
+```
+How did occupation vary by race during this period? Are the patterns you see here similar to or different from what you would have expected on the basis of this week's reading? Why or why not?
+
+>
+
+## Thinking about race and region (4 points)
+We saw in the Notebook that different regions of the country had different types of industry. Is it possible that the racial differences we see in the above graph are related to region? Add a `REGION` variable to the data frame (using the `regionalize()` function you created before) and plot the population by `RACEF` and `REGION` (one as the fill variable and one as the facet variable, with `YEAR` on the x-axis and total population on the y-axis). Make the graph publication quality.
+```{r fig.height = 10}
+
+```
+Which variable did you use as the fill and which as the facet? Why? What patterns do you see here? Do they reflect your understanding of race formation in the U.S., either on the basis of class readings or previous knowledge? Why or why not? Why are some categories more strongly represented in some regions than others?
+
+>
+
+Now plot `OCCUP` as the fill variable, faceting horizontally by `RACEF` and vertically by `REGION`.
+```{r fig.height=10}
+
+```
+What story does this plot tell about occupational change in the United States between 1870 and 1930. Why is it important to include race as well as region? What do we miss if we leave out one or both?
+
+>
+
+## Turn in this assignment
+Click `Preview` to make sure your lab looks the way you want it to. Upload the `Lab4.nb.html` file to Canvas.

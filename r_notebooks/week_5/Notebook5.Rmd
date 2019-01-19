@@ -1,0 +1,91 @@
+---
+title: "STS 112: Notebook 5"
+author: "Professor Emily Klancher Merchant, UC Davis"
+output: html_notebook
+---
+
+This week's notebook will explore more ways to visualize occupational change over time. Last week we focused on men's occupations; this week we will focus on women's occupations. This notebook will teach you how to control the colors in your graph and how to make line graphs to show percentages.
+
+## Exploring the data
+Read in the [data for week 5](https://ucdavis.box.com/s/noi5nr13eque0cx96rpkxmqyzpwqt2s4). Explore the dataset and documentation to determine which samples and variables we are working with.
+```{r results = "hide"}
+
+```
+This block of code produces univariate statistics for `PERWT` for each unique value of `YEAR` in the `ipums` data frame.
+```{r}
+for (year in unique(ipums$YEAR)) {
+  print(year)
+  print(summary(filter(ipums, YEAR == year)$PERWT))
+}
+```
+Explain how this works.
+
+Since our sample spans 1930-1960, we need to remove records for Alaska and Hawaii prior to 1960.
+```{r}
+ipums <- ipums %>% filter(YEAR > 1950 | !STATEFIP %in% c(2, 15))
+ipums %>% filter(YEAR < 1960 & STATEFIP %in% c(2, 15))
+```
+## Working with color
+We will start by exploring women's occupations the same way we explored men's occupations last week. Create a new data frame called `women` that includes only women aged 15 to 64. Create a new variable called `OCCUP` that classifies `OCC1950` into a relatively small number of categories. They can be the same ones you used last week or different ones, but don't use more than 12 categories total.
+```{r}
+women <- 
+```
+
+Plot a column graph with `YEAR` on the x-axis and number of people on the y-axis, with occupational categories designated by color. Save your plot as an object called `occplot` and print it below.
+```{r}
+occplot <- 
+```
+The colors we have now are pretty good: they are different colors for each category, which is appropriate for a nominal variable. We would not want to use different shades of the same color for a nominal variable (though we would for a continuous variable or an ordinal variable). The problem with these colors is that some of them are very similar, and by default, R puts them in rainbow order, so similar colors are near one another, which makes it hard to see where one ends and the next begins. As we get more and more categories, the colors will blend into one another more and more. 
+
+It is possible to specify your own set of colors, but it is easier to use one provided in the `RColorBrewer` package, which is part of the `tidyverse`. To use RColorBrewer, simply add the `scale_fill_brewer(palette = "")` layer, with the name of the palette that you want to use inside the quotation marks. You can see all of the palettes [here](https://earlglynn.github.io/RNotes/package/RColorBrewer/index.html). For a nominal variable, we want to use one of the "qualitative" palettes. You will see that different palettes have different numbers of colors. It is possible to adjust a palette to have more colors, but it is better to use one that already has as many as you need, or reduce the number of categories you are trying to visualize. Below you can see your plot with two different palettes.
+```{r}
+occplot + scale_fill_brewer(palette = "Set3")
+occplot + scale_fill_brewer(palette = "Paired")
+```
+Both of these are much easier to see than the original plot.
+
+## Line graphs
+When we include women who are listed as not having an occupation, our plot is dominated by the dramatic change in women's labor force participation. But when we exclude women who are listed as not having an occupation, we don't see that dimension. Fortunately, we don't need to tell the whole story in one plot. We can combine our column graph showing the proportion of working women in each category over time with a line graph showing the proportion of women who were listed in each census as having an occupation. You will do that in your lab for this week. For now, we will use marital status to practice line graphs. What we want to end up with is a graph that looks like the one in [this article](https://www.businessinsider.com/divorce-and-marriage-by-age-charts-2016-2), but faceted by census year.
+
+Making a line graph is very similar to making a column graph, but we use `geom_line()` instead of `geom_col()` and we use `color` instead of `fill` to control the color of the line. For this line graph, we will need to work with the marital status variable, `MARST`. Let's make a bar graph of `MARST`, faceted by `YEAR` and weighted by `PERWT`, to see the frequency distribution of this variable.
+```{r}
+ggplot()
+```
+Now let's make a data set called `allwomen` that includes all women under 90 (take a look at the documentation for `AGE` to see why I chose this cutoff). We will recode `MARST` into a new variable called `MARITAL` with four categories: single (never married), married, divorced (including separated and spouse absent), and widowed. You will be doing this again in the lab, so you may want to write a function. Make a scatterplot to test whether you did the recoding correctly.
+```{r}
+allwomen <- 
+
+qplot(MARITAL, MARST, data = allwomen)
+```
+Since we want to graph the *percent* of women at each age who are in each marital status category, rather than the *number*, we need to calculate the number of women at each age in each year who are in each marital status category and the total number of women at each age in each year. We do this by moving the `MARITAL` variable from our `group_by()` function to our `count()` function and then adding a mutate function that uses the `sum()` function that calculates the total number of women in each year/age group by summing the number of women in each marital status in each year/age group, which was calculated in the `count()` function.
+```{r}
+maritalpct <- allwomen %>% group_by(YEAR, AGE) %>% count(MARITAL, wt = PERWT) %>% mutate(TOTAL = sum(n))
+tail(maritalpct)
+```
+What this line says is: take the `allwomen` data frame; for each census year and each unique value of `AGE` , count the number of records with each unique value of `MARITAL`, weighting by `PERWT` (this becomes a new variable, `n`); then create a new variable called `TOTAL`, which is the sum of `n` for all rows with the same value of `YEAR` and `AGE`. 
+
+Now we can use this data frame to make a line graph. Note that it looks just like our column graphs, but with `geom_line()` instead of `geom_col()` and `color` instead of `fill`. We can control all aspects of it the same way we did with our column graphs.
+```{r}
+ggplot(maritalpct, aes(AGE, n/TOTAL, color = MARITAL)) + geom_line() +
+  facet_wrap(vars(YEAR), ncol = 5)
+```
+We have successfully replicated the graph from *Business Insider*, but it is not actually a very good way to see change over time in marital status. To begin with, there is good reason to think that these patterns vary by race. The issue with this visualization, however, is that all the lines add up to 1 because they all have the total population as the denominator. A line graph is best for showing the same outcome among different segments of the population. So a better way to see how marital status over the life course varies by race is to facet the plot by marital status and use line color to indicate race. That way each line shows the proportion of women in a particular racial category who is single, married, etc. at each age.
+
+To do that, we first need to add a column to our data frame with race categories. Decide on an appropriate classification scheme and write a function that uses that scheme to add a column called `RACEF` to a dataframe. Use the function to add `RACEF` to your `allwomen` data frame. Use a scatterplot to test the function, and save the function for your lab.
+```{r}
+
+```
+
+Now make the line graph again, but this time add `RACEF` to the `group_by()` function you use to calculate the percentage of women in each marital status for each combination of `YEAR` and `AGE`. Then use the same `ggplot()` function you wrote before, but with `RACEF` as the color variable and with horizontal facets for `MARITAL` and vertical facets for `YEAR`.
+```{r fig.height=15}
+
+```
+Depending on how you constructed `RACEF`, there may not be enough cases in each separate combination of `RACEF`, `YEAR`, and `AGE` to give a useful visualization. Make the graph again, but this time limit it to women who were classified as either white or black.
+```{r fig.height=15}
+
+```
+What patterns do you see, and how do they change over time?
+
+>
+
+You are now ready to complete Lab 5!
