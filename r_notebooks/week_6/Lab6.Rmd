@@ -1,0 +1,54 @@
+---
+title: "STS 112: Lab 6"
+author: "Your name here"
+date: Due 2.19.19
+output: html_notebook
+---
+In this lab, we will make more population pyramids to explore the effects of immigration legislation on immigration to the United States from a variety of countries. 
+
+## Getting started
+Load `tidyverse` and read in the data for Week 6. Remove records for Alaska and Hawaii if necessary. 
+```{r results = "hide"}
+
+```
+## Classifying birthplaces (3 points)
+In this lab, we will only be making pyramids for individuals born outside the United States, but we want to graph their numbers as a proportion of the total population. For that reason, we will keep individuals born in the United States in the data frame until the end. Create a new variable called `BPLACE` that classifies `BPL` and/or `BPLD` into a relatively small number of categories. Use this week's readings to help you decide what the categories should be. Include one category for people born in the United States so we can remove them later. Test that you have done it the way you intended.
+```{r}
+
+```
+With reference to this week's reading, explain why you chose the categories you chose.
+
+>
+
+## Making population pyramids (3 points)
+Now add age groups and factor `SEX`.
+```{r}
+
+```
+Create column `n`, representing the number of people in each unique cmbination of `YEAR`, `BPLACE`, `SEXF`, and `AGEG`, and column `TOTAL`, representing the total number of people in each year.
+```{r}
+
+```
+Change `n` values for men to negative values and remove rows for individuals born in the United States.
+```{r}
+
+```
+Now plot the population pyramids, faceting on `BPLACE` and animating by `YEAR`. You will need to adjust the breaks and labels on the y-axis to make the pyramids legible.
+```{r}
+
+```
+
+```{r results = "hide"}
+
+```
+Include a reference to the `.gif` file here:
+
+
+## Describing and interpreting your results (4 points)
+Explain what your animation *is*. Without getting into the details of the coding, give enough detail that readers could replicate it and interpret it for themselves.
+
+>
+
+Explain what your animation *shows* and interpret it with reference to the readings for this class. The Ngai article we read for this week explained how the 1924 National Origins Act changed the ways Americans understood race and nationality, but did not say much about how it influenced the composition of the U.S. population. What does your animation tell you about that? The 1965 Hart-Cellar act abolished the quota system described by Ngai. Immigration policy since then has focused on reuniting families and bringing skilled workers to the United States. What does your animation suggest about the influence of the Hart-Cellar act on the composition of the U.S. population?
+
+>

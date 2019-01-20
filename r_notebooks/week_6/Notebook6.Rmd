@@ -1,0 +1,179 @@
+---
+title: 'STS 112: Notebook 6'
+author: "Professor Emily Klancher Merchant, UC Davis"
+output: html_notebook
+---
+In this week's notebook, you will learn how to flip the coordinates of a graph and animate a set of graphs to show change over time. We will use these tools to make population pyramids. In your lab, you will use population pyramids to visualize the effects of changing immigration policies across the twentieth century.
+
+## Flipping coordinates
+To see how coordinate flipping works, we are going to start by going back to last week's data on women's occupations. Load the `tidyverse` package, read in the [data for week 5](https://ucdavis.box.com/s/noi5nr13eque0cx96rpkxmqyzpwqt2s4), and remove records for Alaska and Hawaii before 1960.
+```{r results = "hide"}
+
+```
+The following code makes the basic column graph of women's occupations over time that we began with last week, including only women with an occupation listed.
+```{r fig.height = 10}
+occs <- function(ipumsdata) {
+  ipumsdata <- ipumsdata %>% 
+    mutate(OCCUP = floor(OCC1950/100) + 1) %>%
+    mutate(OCCUP = ifelse(OCCUP == 9, 2,
+                          ifelse(OCC1950 %in% (910:979), 9, OCCUP))) %>%
+    mutate(OCCUP = factor(OCCUP, 
+                          labels = c("Prof/Tech", "Farming", "Managers", "Clerical", "Sales",
+                                     "Crafts", "Operatives", "Service", "Laborers", "None")))
+  return(ipumsdata)
+}
+
+women <- occs(ipums) %>% filter(OCCUP !="None") %>%
+          filter(SEX == 2 & AGE >= 15 & AGE <= 64) %>%
+          group_by(YEAR, OCCUP) %>% count(wt = PERWT)
+occplot <- ggplot(women, aes(YEAR, n, fill = OCCUP)) + geom_col() +
+              scale_x_continuous(breaks = c(1900, 1930, 1960, 1990)) +
+              scale_y_continuous(labels = scales::comma) +
+              scale_fill_brewer(palette = "Set3") +
+              theme_minimal(base_size = 20) +
+              labs(x = "Census Year", y = "Number of Women", fill = "Occupational Category",
+                  title = "Occupational Change for Women Aged 15-64 with Occupation Listed")
+occplot
+```
+One problem with this kind of plot is that the size of any given category affects the position of the other categories, so it can be hard to compare how a given category has changed over time. For example, did the service sector grow between 1900 and 1910, or does it just look that way because the bar for service is higher in the 1910 column? One way to enhance comparability within columns is to facet on occupational categories, either instead of or in addition to using color to denote occupational categories. Do this by adding a `facet_wrap()` layer to your plot.
+```{r fig.height = 10}
+occplot + facet_wrap() + guides(fill = "none")
+```
+This helps us compare change within each category over time, but it is now much harder to compare the size of each category at a given point in time. What if we facet by year and put occupational categories on the x-axis? Save this new plot as `occplot2` and print it.
+```{r fig.height=10}
+occplot2 <- 
+occplot2
+```
+Do we want to use `free_y`? Why or why not?
+
+>
+
+Do we still want to use different colors for occupational categories? Why or why not?
+
+>
+
+Now we can see the size of different occupational categories in any given year, but it is much harder to see changes in those categories over time. We also can't see what the categories are. We can fix both of these things by simply turning the plot on its side, which we do by adding the `coord_flip()` layer.
+```{r fig.height=10}
+occplot2 + coord_flip()
+```
+What did the `coord_flip()` layer do? Did it reverse the x- and y-axes?
+
+>
+
+It is still hard to read the labels across the bottom, but we can change the y-axis labels to count by millions of women.
+```{r fig.height=10}
+occplot2 + coord_flip() + 
+  scale_y_continuous(breaks = seq(0, 20000000, 5000000), labels = seq(0, 20, 5)) +
+  labs(y = "Millions of Women")
+```
+Here we can see the enormous growth of female labor force participation over the twentieth century. It is harder to see changes in the distribution of working women accross occupational categories. Instead of plotting the *number* of women in each category, we can plot the *percent* of working women in each category. To do this, we need to add a column to our `women` data frame that includes the total number of working women in each year.
+```{r}
+women <- women %>% 
+```
+Copy and paste your code for `occplot2` here, and adjust it to graph percents rather than total numbers. You will need to change the value plotted on the y-axis, the scale on the y-axis, and the y-axis label. Don't forget to add the `coord_flip()` layer.
+```{r fig.height=10}
+
+```
+What patterns become apparent now that were not apparent before? Explain the y-axis title.
+
+>
+
+## Population pyramids
+Now that we know how to flip our coordinates, we can make population pyramids like [this one](http://www.pewresearch.org/age-pyramid/), which was widely regarded as the best data visualization of 2014. A population pyramid is a visualization demographers use to quickly see the age-sex structure of a population. Here we will use it to see the effects on the U.S. population of changing immigration laws across the twentieth century. Read in the [data for week 6](https://ucdavis.box.com/s/noi5nr13eque0cx96rpkxmqyzpwqt2s4). We won't be using the Week 5 data again, so you can save the Week 6 data frame as `ipums`.
+```{r results = "hide"}
+
+```
+Which samples and variables are we working with?
+```{r}
+for (year in unique(ipums$YEAR)) {
+  print(year)
+  print(summary(filter(ipums, YEAR == year)$PERWT))
+}
+names(ipums)
+```
+Do we need to remove Hawaii and Alaska?
+
+>
+
+For now, we are going to use our population pyramids to compare the native-born and foreign-born segments of the U.S. population. In your lab, you will further subdivide the foreign-born segment. Take a look at the documentation for `BPL` and `BPLD` and create a new variable called `NATIVITY` that indicates whether or not a person was born in the United States. We will be faceting on this variable, so make it a factor variable with meaningful labels. While you are at it, also factor `SEX`, creating a new variable `SEXF`. Test that you have done this correctly.
+```{r}
+ipums <- 
+```
+Population pyramids typically show the size of the population by age group rather than each individual age. Since we are working with data at ten-year intervals, we need to recode `AGE` into a new factor variable called `AGEG` that represents ten-year age groups (0-9 through 80+). We can use some programming magic to make it easier. First we make a vector of labels for our new variable. Alternatively, we could have typed out each individual label.
+```{r}
+agegrp <- "0-9"
+for (n in (1:7)) {
+  agegrp <- c(agegrp, paste(n, "0-", n, "9", sep = ""))
+}
+agegrp <- c(agegrp, "80+")
+agegrp
+```
+Explain how this works.
+
+Now we factor AGE and apply the labels. Using the `floor()` function saves us a lot of typing.
+```{r}
+ipums <- ipums %>% mutate(AGEG = factor(ifelse(AGE >= 80, 9, floor(AGE/10)), labels = agegrp))
+qplot(AGEG, AGE, data = ipums)
+```
+We eventually want to animate our population pyramid, but we will begin by using facets for year as well as for nativity. For each year, we want the number of people in each age/sex/nativity category as a percentage of the total population in that year.
+```{r}
+agedata <- ipums %>% group_by(YEAR) %>% 
+                     count(NATIVITY, SEXF, AGEG, wt = PERWT) %>% 
+                     mutate(TOTAL = sum(n))
+head(agedata)
+tail(agedata)
+```
+Why did we put `NATIVITY`, `SEXF`, and `AGEG` in the `count()` function rather than the `group_by()` function?
+
+>
+
+In the population pyramid, we want the number of men to plot on the left. To make that happen, we express the numbers of men as a negative.
+```{r}
+agedata <- agedata %>% 
+head(agedata)
+tail(agedata)
+``` 
+
+Now we can make a column graph, but don't facet yet. Which variable goes on the x-axis? Which goes on the y-axis? Save the graph as `pyramid` and print it.
+```{r}
+pyramid <- ggplot() + geom_col()
+pyramid
+```
+Flip the coordinates and add facets and all the layers you need to make the plot look good. The `Set1` palette from `RColorBrewer` is a good choice for population pyramids. We can move the legend to the bottom with the `theme(legend.position = "bottom")` layer.
+```{r fig.height=20}
+pyramid + coord_flip() + scale_fill_brewer(palette = "Set1") + 
+  scale_y_continuous(breaks = seq(-.15, .15, .05), 
+                     labels = c("15%", "10%","5%", "0","5%", "10%","15%")) +
+  theme_minimal(base_size = 20) + theme(legend.position = "bottom") +
+  labs(x = "Age", y = "Percent of Population", fill = "Sex", title = "Population Pyramid") +
+  facet_grid(rows = vars(YEAR), cols = vars(NATIVITY))
+```
+We built this set of pyramids one step at a time so that you could see all of the steps that went into it. We could have also done it in one large block of code. Pull together all of the code to make this plot, starting with the original `wk6.csv` file, into a single block. Don't include the tests that you used to check your recoding. Add `base_size = 25` to your `theme_minimal()` layer to increase the size of the text. Save the results of the whole block as `pyramids`.
+```{r results = "hide"}
+
+```
+
+```{r fig.height=10}
+pyramids
+```
+Once you have that working, remove the vertical facet for `YEAR`, so all years are plotting together. Make sure this is the object that has been saved as `pyramids`. We want to animate change over time rather than displaying it in facets. To animate a `ggplot2` graph, we need to install and load the `gganimate` and `gifski` packages. Then, we just need to add one more layer to our `pyramids` plot.
+```{r results = "hide"}
+library(gganimate)
+library(gifski)
+pyramids + transition_manual(YEAR) 
+anim_save("pyramid.gif")
+```
+The `transition_manual()` function indicates which variable to use as the time dimension. The `anim_save()` function saves the animation as a `.gif`. You can call it whatever you want. It will not appear in your editor window, but you should see it in the `Viewer` tab in the lower right window in RStudio. 
+
+The animation would be more useful if the title indicated which year we were seeing at any given moment. You can do that by adding another `labs()` layer to replace the title. I have also added an `options()` function to increase the resolution of the final animation.
+```{r results = "hide"}
+options(gganimate.dev_args = list(width = 1800, height = 860))
+pyramids + transition_manual(YEAR) + labs(title = "Population Pyramid, {current_frame}")
+anim_save("pyramid.gif")
+```
+
+In order to see the animation in your output, you need to add `![](pyramid.gif){ width=100% }` in a markdown block (it's ok if it doesn't appear in your editor window; you should see it when you click `Preview`). Put it below: 
+
+
+
+You are now ready for Lab 6!
