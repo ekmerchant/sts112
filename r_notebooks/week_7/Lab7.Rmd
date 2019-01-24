@@ -1,0 +1,69 @@
+---
+title: "STS 112: Lab 7"
+author: "Your name here"
+date: Due 2.26.19
+output: html_notebook
+---
+
+This week, you read about migration from the South to the North and West over the twentieth century. As you noticed in the reading, the experience of black and white migrants differed in some ways and was similar in other ways. In this lab, you are going to make two sets of maps covering the year 1900-1990. One will show the proportion of African Americans in each state who were born in the South. The other will show the proportion of white Americans in each state who were born in the South. For each map, think carefully about what is the numerator and what is the denominator.
+
+Start by loading the packages you will need. Then read in the data for Week 7 and the `state_names` data frame you made in this week's notebook. Use the `map_data()` function to convert the state map into a data frame.
+```{r results = "hide"}
+
+```
+In contrast to this week's notebook, where we had to make two separate sets of maps, for the lab, we can make a single plot that is faceted horizontally by race and vertically by year. We can do this because we are plotting the same thing (percent born in the South) for African Americans and for white Americans.
+
+## Identifying southern-born by race (2 points)
+Start by making a vector called `south` that includes the `STATEFIP` codes for all states in the South (this is 16 states, plus the District of Columbia) You can consult the [Census Bureau](https://www2.census.gov/geo/docs/maps-data/maps/reg_div.txt) for the full list of states and codes.
+```{r}
+south <- c()
+```
+Now decide how you will classify individuals as either white or black. Create a new data frame called `ipums_sub` that includes only people who fall into one of those categories. Also eliminate rows for Alaska and Hawaii. In the same data frame, create a new factor variable called `RACEF` that classifies individuals as either white or black, and includes text labels indicating race.
+```{r}
+ipums_sub <- ipums %>% filter() %>% 
+              mutate(RACEF = )
+```              
+In your `ipums_sub` data frame, create a new variable called `SBORN` that takes a value of `TRUE` if a person was born in the South and `FALSE` otherwise.
+```{r}
+
+```
+## Calculating percentages (1 point)
+Now create a new variable called `PCT` that indicates the percent of people, within each unique combination of `YEAR`, `STATEFIP`, and `RACEF` that was born in the South. Don't forget to weight by `PERWT`.
+```{r}
+ipums_sub <- ipums_sub %>% group_by() %>% 
+                           count() %>%
+                           mutate(PCT = ) 
+```
+Now ungroup and drop the rows that represent percent of people not born in the South.
+```{r}
+ipums_sub <- ipums_sub %>% 
+```
+## Recoding (1 point)
+For each racial category, use the `summary()` function to see the dispersion of values of `PCT`.
+```{r}
+
+```
+Choose a set of breaks for `PCT` that will represent the dispersion of values in the data. Create a new variable called `SBORN` in your `ipums_sub` data frame that recodes the `PCT` variable to implement the breaks you chose. This should be a factor variable with text labels.
+```{r}
+ipums_sub <- ipums_sub %>% mutate(SBORN = ) %>%
+                           mutate(SBORN = factor(SBORN, labels = c())) 
+```
+## Joining (1 point)
+Join your `ipums_sub` data frame to the `states` data frame, using the `state_names` data frame as a crosswalk. Call the resulting data frame `ipums_map`.
+```{r}
+ipums_map <- 
+```
+## Mapping (2 points)
+Now plot your maps. Facet horizontally by `YEAR` and vertically by `RACEF`. Make sure that your plot has an appropriate title, and that your legend is labeled.
+```{r}
+
+```
+## Discussion (3 points)
+Explain what this map *is*. Without going into technical detail, give your readers enough information that they could replicate your visualization and interpret it for themselves. Be sure to explain how you classified individuals as either "White" or "Black".
+
+>
+
+Explain what your map *shows*. With reference to the Gregory chapter, describe the patterns you see here, how they differ by race. How do these maps either confirm or challenge what you read?
+
+>
+

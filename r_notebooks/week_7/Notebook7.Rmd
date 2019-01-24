@@ -1,0 +1,196 @@
+---
+title: "STS 112: Notebook 7"
+author: "Professor Emily Klancher Merchant, UC Davis"
+output: html_notebook
+---
+
+This week you are going to learn how to map your data. Continuing with last week's theme of international migration and moving into this week's theme of the Great Migration, we will make maps of the United States for the censuses of 1900 - 1990. The first set of maps will show the proportion of each state's population that was born outside of the United States. The second set of maps will show the proportion of each state's population that was classified as African American. By the time you finish this notebook, in addition to knowing how to visualize data in a map, you will also know how to join data frames, use regular expressions to make a crosswalk, and recode continuous variables into ordinal variables. You will also get more practice with defining functions.
+
+Start by installing and loading the libraries we will need (tidyverse, mapdata, cowplot) and reading in the data for this week. 
+```{r results = "hide"}
+library(tidyverse)
+library(mapdata)
+library(cowplot)
+
+ipums <- read_csv("wk7.csv")
+```
+Explore the data to see which variables and samples we are working with.
+```{r}
+
+```
+## Calculating percentages
+We will start by calculating the quantities we want to map: the percentage of each state's population in each year that was born outside the United States and the percentage of each state's population in each year that was classified as African American.
+
+First we want to add to our `ipums` data frame two new variables: one called `FBORN` that indicates whether a given person was born outside the United States, and another called `AA` that indicates whether a given person was classified as African American. These variables will take values of `TRUE` and `FALSE`. We also want to remove records for Alaska and Hawaii, and any records where `STATEFIP` is unknown.
+```{r}
+ipums <- ipums %>% mutate(FBORN = , AA = ) %>%
+                   filter(STATEFIP <= 56 & !STATEFIP %in% c(2, 15))
+```
+Now write a general function that calculates the proportion of each state's population that is in the `TRUE` category for each variable in each year.
+```{r}
+pctpop <- function(ipumsdata, indicator) {
+
+}
+
+fborn <- pctpop(ipums, FBORN)
+aa <- pctpop(ipums, AA)
+head(fborn)
+head(aa)
+```
+## Working with maps
+To map data, we need to start with a data frame that contains the outline of the geography we are working with. In this case, we want a map that outlines the states of the United States. That map exists in the `mapdata` package, and is called "state". To make it usable in `ggplot()`, we need to turn it into a data frame with the `map_data()` function. We will call the new data frame `states`.
+```{r}
+states <- map_data("state")
+head(states)
+```
+As you wee here, there are multiple rows for every state, each representing a point on the state's boundary. The `group` and `order` variables tell `ggplot()` how to connect all of the points that make the outline of each state. Notice that the state name is in a column called `region` and that the state name is spelled all in lower case. We can see all the states in the map with the `unique()` function.
+```{r}
+sort(unique(states$region))
+```
+Notice that the map includes the District of Columbia, but it does not include Alaska or Hawaii.
+
+You can use the `geom_polygon()` layer in `ggplot()` to see the blank map.
+```{r}
+ggplot(states, aes(x = long, y = lat, group = group)) + geom_polygon()
+```
+We can improve the shape of the map by using the Albers Equal Area projection, and we can remove the x- and y-axes by using `theme_map()` from the `cowplot` package.
+```{r}
+ggplot(states, aes(x = long, y = lat, group = group)) + geom_polygon() +
+  coord_map(projection = "albers", lat0 = 39, lat1 = 45) +
+  theme_map()
+```
+## Joining data frames
+To place our data on this map, we need to use a `join()` function to link the `states` data frame to the data frames that contain the data we want to map.
+
+There are four kinds of `join()` functions. To see how these work, run the following code block to make two separate data frames.
+```{r}
+name <- c("Abby", "Carmen", "Diego", "Gertrude", "Hector", "Irene")
+dogs <- c(2, 5, 3, 1, 1, 2)
+dog_data <- data.frame(name, dogs)
+
+name <- c("Bob", "Carmen", "Diego", "Evelyn", "Frank", "Hector")
+cats <- c(2, 2, 3, 1, 1, 1)
+cat_data <- data.frame(name, cats)
+
+dog_data
+cat_data
+```
+As you can see, we have six dog owners and six cat owners, and some of them are the same people. There are four different types of joins. In a `left_join()` and a `right_join()`, the first data frame listed is the left data frame and the second is the right data frame. In a `left_join()`, the final data frame will include all rows from the left data frame and only matching rows from the right data frame. In a `right_join()`, the final data frame will include all rows from the right data frame and only matching rows from the left data frame. So if we want a data frame that only includes dog owners but indicates both the number of dogs they have and the number of cats they have, we can use either a `left_join()` or a `right_join()`.
+```{r}
+dog_owners <- left_join(dog_data, cat_data)
+dog_owners
+
+dog_owners <- right_join(cat_data, dog_data)
+dog_owners
+```
+By default, R will join on any column or set of columns that is identical between the two data frames. We can also specify how we want R to match up the data frames, but we don't need to do that in this case, or for our data map.
+
+If we want the equivalent for cat owners, we just reverse the order of the data frames.
+```{r}
+cat_owners <- left_join(cat_data, dog_data)
+cat_owners
+
+cat_owners <- right_join(dog_data, cat_data)
+cat_owners
+```
+The `inner_join()` function returns a data frame with only the matching rows of the two data frames that are joined. We would use this if we want a data frame including only people who own both dogs and cats.
+```{r}
+dog_cat_owners <- inner_join(dog_data, cat_data)
+dog_cat_owners
+```
+The `full_join()` function returns a data frame containing all rows of both data frames. We would use this to get a data frame containing everyone who owns either a dog or a cat or both.
+```{r}
+pet_owners <- full_join(dog_data, cat_data)
+pet_owners
+```
+All of these joins are `dplyr` functions, so we can also use pipes:
+```{r}
+dog_owners <- dog_data %>% left_join(cat_data)
+cat_owners <- dog_data %>% right_join(cat_data)
+dog_cat_owners <- dog_data %>% inner_join(cat_data)
+pet_owners <- dog_data %>% full_join(cat_data)
+```
+## Making a crosswalk
+To join the `states` data frames with our `fborn` and `aa` data frames, we need to match at least one column in each dataframe. Since we are mapping by states, we want to match the rows for each state in `states` with the rows for the same state in the other data frame. The problem is that in `states`, the states are designated by name (the `region` variable), and in the other data frames, they are designated by number (`STATEFIP`). 
+
+What we need is a **crosswalk**, which will match name to number. Since that information is in the codebook, let's start by copying over the codes for the `STATEFIP` variable. We will then use **regular expressions** to get it into the correct format and the `tribble()` function to turn it into a data frame.
+```{r}
+state_names <- tribble(
+  ~STATEFIP, ~STATE,
+
+)
+```
+To create a `region` variable in this data frame that is identical to the one in the `states` data frame, we can use the `tolower()` function to convert state names to all lower case.
+```{r}
+state_names$region <- tolower(state_names$STATE)
+head(state_names)
+```
+You can save this data frame to use for your lab by writing it out to a `.csv` file.
+```{r}
+write_csv(state_names, "state_names.csv")
+```
+
+Now we can use the crosswalk to join our data to our map. We need to do two joins. First, we join the frame with the data we are mapping to the `state_names` frame, and then we want join the results to the `states` frame. Since we only want rows that match between all of the data frames, we will use an inner join, and we could have done the two joins in any order.
+```{r}
+fborn_map <- inner_join() %>% inner_join()
+aa_map <- inner_join() %>% inner_join()
+```
+Now we can adjust the code from our empty state map to write a function to map values of the `PCT` variable in each data frame and facet by `YEAR`.
+```{r}
+map_pct <- function(dframe) {
+
+}
+
+map_pct(fborn_map)
+map_pct(aa_map)
+```
+## Recoding continuous variables
+There are a few problems with these maps. First, lower values are mapping darker, which is the opposite of what we want. Second, the `PCT` variable is continuous, so the fill color is appearing on a continuous scale, which makes it hard to see what the actual values are. We can fix both of these things by recoding `PCT` on a discrete scale. Let's look at a summary of these variables so we can decide where to set our breaks.
+```{r}
+summary()
+summary()
+```
+Test out some break points for each variable.
+```{r}
+fborn <- fborn %>% mutate(FBORN = ifelse(PCT < 0.02, 1,
+                                  ifelse(PCT < 0.05, 2,
+                                  ifelse(PCT < 0.10, 3,
+                                  ifelse(PCT < 0.25, 4, 5)))))
+table(fborn$FBORN)
+```
+```{r}
+aa <- aa %>% mutate(AA = ifelse(PCT < 0.005, 1,
+                         ifelse(PCT < 0.015, 2,
+                         ifelse(PCT < 0.05, 3,
+                         ifelse(PCT < 0.15, 4, 
+                         ifelse(PCT < 0.30, 5, 6))))))
+table(aa$AA)
+```
+Once you have break points you like, factor the PCT variables and add labels.
+```{r}
+fborn <- fborn %>% mutate(FBORN = factor(FBORN, labels = c()))
+aa <- aa %>% mutate(AA = factor(AA, labels = c()))
+```
+Now we can adjust the function we wrote before to do the joining and mapping again. 
+```{r fig.height=10}
+map_pct <- function(dframe, varname) {
+
+}
+
+map_pct(fborn, FBORN)
+map_pct(aa, AA)
+```
+Since we are now mapping a discrete variable, R used different colors for the fill. However, these variables are ordinal rather than nominal, so we want to map them in different shades of the same color. We can specify that with a `scale_fill_brewer()` layer, and we can add titles and legend labels with a `labs()` layer.
+```{r}
+map_pct(fborn, FBORN) + scale_fill_brewer(palette = "Blues") +
+  labs(title = "Percentage of Population Born Outside the United States, by State and Year",
+       fill = "Born Outside the U.S.")
+map_pct(aa, AA) + scale_fill_brewer(palette = "Greens") +
+  labs(title = "Percentage of Population Classified as African American, by State and Year",
+       fill = "Classified as African American")
+```
+What patterns do you notice in these two sets of maps? How do they relate to the articles we read this week and last week?
+
+>
+
+You are now ready for Lab 7!
